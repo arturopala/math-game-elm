@@ -1,0 +1,154 @@
+body {
+    height: 100%;
+    margin: 0;
+    width: 100%;
+}
+
+html {
+    height: 100%;
+    width: 100%;
+    font-family: 'VAGLight';
+    font-size: 30pt;
+}
+
+.main {
+  background:white;
+  position:absolute;
+  color:black;
+  top:50%;
+  left:50%;
+  padding:15px;
+  -ms-transform: translateX(-50%) translateY(-50%);
+  -webkit-transform: translate(-50%,-50%);
+  transform: translate(-50%,-50%);
+}
+
+.game > .achievements {
+  font-size: 0.8rem;
+  color: orange;
+  vertical-align: bottom;
+  padding: 0.5rem 1rem 0.2rem 1rem;
+}
+
+.game > .state {
+  font-size: 0.8rem;
+  color: white;
+  vertical-align: bottom;
+  padding: 0.5rem 1rem 0.2rem 1rem;
+}
+
+.game > .state.inprogress {
+  color: darkgray;
+}
+
+.game > .state.solved {
+  color: green;
+  text-align: center;
+}
+
+.game > .state.timeout {
+  color: gray;
+  text-align: center;
+}
+
+.game > .state.wrong {
+  color: red;
+}
+
+.exercise {
+	padding: 1rem;
+	font-size: 1.5rem;
+}
+
+.exercise.solved {
+  border:5pt solid green;
+}
+
+.exercise.wrong {
+  border:5pt dotted red;
+}
+
+.exercise.timeout {
+  border:5pt solid gray;
+  pointer-events: none;
+  color: gray!important;
+}
+
+.exercise > .row {
+  white-space:nowrap;
+}
+
+.exercise > .solution {
+  border-top: 3pt solid darkgray;
+}
+
+.exercise > .row > .cell {
+	width: 1.1em;
+  display: inline-block;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.exercise > .row > .cell > input {
+  border: 0 none transparent;
+  background-color: transparent;
+  width: 1em;
+  font-family: 'VAGLight';
+  font-size: 1.5rem;
+  text-align: center;
+  vertical-align: middle;
+  border-bottom: 3px solid transparent;
+  outline: none;
+}
+
+.exercise.inprogress > .row > .cell > input {
+  color: blue;
+}
+
+.exercise.solved > .row > .cell > input {
+  color: green;
+}
+
+.exercise.wrong > .row > .cell > input {
+  color: blue;
+}
+
+.exercise.timeout > .row.solution > .cell > input {
+  background-color: white;
+  color: black;
+}
+
+.exercise.timeout > .row > .cell > input.wrong {
+  background-color: red !important;
+  color: white !important;
+}
+
+.exercise.inprogress > .row > .cell > input:focus {
+  border-bottom: 3px solid transparent;
+  animation: blink .5s step-end infinite alternate;
+}
+
+.exercise.wrong > .row > .cell > input:focus {
+  border-bottom: 3px solid transparent;
+  animation: blink .5s step-end infinite alternate;
+}
+
+.noselect {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+::selection {
+  background: transparent; /* WebKit/Blink Browsers */
+}
+::-moz-selection {
+  background: transparent; /* Gecko Browsers */
+}
+
+@keyframes blink { 
+   50% { border-bottom-color: blue; } 
+}
