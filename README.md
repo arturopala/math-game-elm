@@ -1,6 +1,6 @@
 
 
-Math game written in (Elm)[http://www.elm-lang.org]
+Math game written in [Elm](http://www.elm-lang.org)
 ===================================================
 
 ##Build
