@@ -10695,7 +10695,8 @@ Elm.CharRow.make = function (_elm) {
    $String = Elm.String.make(_elm);
    var _op = {};
    var charView = F2(function (address,character) {
-      return A2($Html.span,_U.list([$Html$Attributes.$class("cell")]),_U.list([$Html.text($String.fromChar(character))]));
+      var digit = $String.fromChar(character);
+      return A2($Html.span,_U.list([$Html$Attributes.$class(A2($Basics._op["++"],"cell v",digit))]),_U.list([$Html.text(digit)]));
    });
    var view = F2(function (address,model) {    return A2($Html.div,_U.list([$Html$Attributes.$class("row")]),A2($List.map,charView(address),model));});
    var update = F2(function (message,model) {    var _p0 = message;return model;});
@@ -10801,12 +10802,22 @@ Elm.Addition.make = function (_elm) {
    var gameStateInfo = function (model) {
       var _p1 = model.state;
       switch (_p1.ctor)
-      {case "Solved": return $Html.text(A2($Basics._op["++"],"Solved for ",A2($Basics._op["++"],$Basics.toString(_p1._0)," points!")));
+      {case "Solved": return $Html.text(A2($Basics._op["++"],"Solved for ",A2($Basics._op["++"],$Basics.toString(_p1._0)," score!")));
          case "Timeout": return $Html.text("Time is over, try again!");
-         case "InProgress": return $Html.text(A2($Basics._op["++"],A3($String.padLeft,2,_U.chr("0"),$Basics.toString(model.clock))," secs left ..."));
-         default: return $Html.text(A2($Basics._op["++"],
-           A3($String.padLeft,2,_U.chr("0"),$Basics.toString(model.clock)),
-           A2($Basics._op["++"]," secs left, correct ",A2($Basics._op["++"],$Basics.toString(_p1._0)," errors"))));}
+         case "InProgress": return A2($Html.span,
+           _U.list([]),
+           _U.list([A2($Html.span,
+                   _U.list([$Html$Attributes.$class("clock")]),
+                   _U.list([$Html.text(A3($String.padLeft,2,_U.chr("0"),$Basics.toString(model.clock)))]))
+                   ,A2($Html.span,_U.list([]),_U.list([$Html.text(" secs left ...")]))]));
+         default: return A2($Html.span,
+           _U.list([]),
+           _U.list([A2($Html.span,
+                   _U.list([$Html$Attributes.$class("clock")]),
+                   _U.list([$Html.text(A3($String.padLeft,2,_U.chr("0"),$Basics.toString(model.clock)))]))
+                   ,A2($Html.span,_U.list([]),_U.list([$Html.text(" secs left, correct ")]))
+                   ,A2($Html.span,_U.list([$Html$Attributes.$class("errors")]),_U.list([$Html.text($Basics.toString(_p1._0))]))
+                   ,A2($Html.span,_U.list([]),_U.list([$Html.text(" errors!")]))]));}
    };
    var countErrors = F2(function (solution,input) {
       return $List.length(A2($List.filter,
@@ -10879,7 +10890,7 @@ Elm.Addition.make = function (_elm) {
    });
    var seed = A2($List.map,split,_U.list([12345,23456,34567,45678,56789]));
    var Model = F8(function (a,b,c,d,e,f,g,h) {    return {numbers: a,solution: b,width: c,input: d,cursorPosition: e,state: f,clock: g,achievements: h};});
-   var Achievements = F2(function (a,b) {    return {round: a,points: b};});
+   var Achievements = F2(function (a,b) {    return {round: a,score: b};});
    var Timeout = {ctor: "Timeout"};
    var viewInputRow = F2(function (address,model) {
       return A2($InputRow.view,
@@ -10893,11 +10904,10 @@ Elm.Addition.make = function (_elm) {
       _U.list([$Html$Attributes.$class("game")]),
       _U.list([A2($Html.div,
               _U.list([$Html$Attributes.$class("achievements")]),
-              _U.list([$Html.text(A2($Basics._op["++"],
-              "Round ",
-              A2($Basics._op["++"],
-              $Basics.toString(model.achievements.round + 1),
-              A2($Basics._op["++"]," | Points ",$Basics.toString(model.achievements.points)))))]))
+              _U.list([A2($Html.span,_U.list([]),_U.list([$Html.text("Round")]))
+                      ,A2($Html.span,_U.list([$Html$Attributes.$class("round")]),_U.list([$Html.text($Basics.toString(model.achievements.round + 1))]))
+                      ,A2($Html.span,_U.list([]),_U.list([$Html.text("Score")]))
+                      ,A2($Html.span,_U.list([$Html$Attributes.$class("score")]),_U.list([$Html.text($Basics.toString(model.achievements.score))]))]))
               ,A2($Html.div,
               _U.list([$Html$Attributes.classList(_U.list([{ctor: "_Tuple2",_0: "state",_1: true}
                                                           ,{ctor: "_Tuple2",_0: classForState(model.state),_1: true}]))]),
@@ -10905,7 +10915,7 @@ Elm.Addition.make = function (_elm) {
               ,A2($Html.div,
               _U.list([$Html$Attributes.classList(_U.list([{ctor: "_Tuple2",_0: "exercise",_1: true}
                                                           ,{ctor: "_Tuple2",_0: classForState(model.state),_1: true}]))]),
-              A2($Basics._op["++"],numberRows,_U.list([inputRow])))]));
+              A2($Basics._op["++"],numberRows,_U.list([inputRow,A2($Html.div,_U.list([$Html$Attributes.$class("mark")]),_U.list([$Html.text("+")]))])))]));
    });
    var Failed = function (a) {    return {ctor: "Failed",_0: a};};
    var Solved = function (a) {    return {ctor: "Solved",_0: a};};
@@ -10963,7 +10973,7 @@ Elm.Addition.make = function (_elm) {
          default: var achievements = model.achievements;
            var newclock = model.clock - 1;
            var newmodel = _U.cmp(newclock,-10) < 0 ? createNextModel(_U.update(achievements,
-           {round: achievements.round + 1,points: model.achievements.points + earnedPoints(model.state)})) : _U.update(model,
+           {round: achievements.round + 1,score: model.achievements.score + earnedPoints(model.state)})) : _U.update(model,
            {clock: newclock,state: A4(updateState,model.state,model.solution,$Array.toList(model.input),newclock)});
            return {ctor: "_Tuple2",_0: newmodel,_1: $Effects.none};}
    });
