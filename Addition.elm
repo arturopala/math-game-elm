@@ -40,7 +40,7 @@ type alias Matrix =
 
 type alias Achievements =
     { round : Int
-    , points : Int
+    , score : Int
     }
 
 
@@ -233,7 +233,7 @@ update message model =
                         model.clock
             in
                 case model.state of
-                    Solved points ->
+                    Solved score ->
                         ( model, Effects.none )
 
                     Timeout ->
@@ -260,7 +260,7 @@ update message model =
                         createNextModel
                             { achievements
                                 | round = achievements.round + 1
-                                , points = (model.achievements.points + (earnedPoints model.state))
+                                , score = (model.achievements.score + (earnedPoints model.state))
                             }
                     else
                         { model
@@ -287,8 +287,8 @@ updateInput input pos char =
 updateState : GameState -> Row -> Row -> Int -> GameState
 updateState state solution input clock =
     case state of
-        Solved points ->
-            Solved points
+        Solved score ->
+            Solved score
 
         Timeout ->
             Timeout
@@ -307,8 +307,8 @@ updateState state solution input clock =
 earnedPoints : GameState -> Int
 earnedPoints state =
     case state of
-        Solved points ->
-            points
+        Solved score ->
+            score
 
         _ ->
             0
@@ -336,12 +336,18 @@ view address model =
             [ class "game" ]
             [ div
                 [ class "achievements" ]
-                [ text
-                    ("Round "
-                        ++ (toString (model.achievements.round + 1))
-                        ++ " | Points "
-                        ++ (toString model.achievements.points)
-                    )
+                [ span
+                    []
+                    [ text "Round" ]
+                , span
+                    [ class "round" ]
+                    [ text (toString (model.achievements.round + 1)) ]
+                , span
+                    []
+                    [ text "Score" ]
+                , span
+                    [ class "score" ]
+                    [ text (toString model.achievements.score) ]
                 ]
             , div
                 [ classList
@@ -356,18 +362,22 @@ view address model =
                     , ( (classForState model.state), True )
                     ]
                 ]
-                (numberRows ++ [ inputRow ])
+                (numberRows
+                    ++ [ inputRow
+                       , div [ class "mark" ] [ text "+" ]
+                       ]
+                )
             ]
 
 
 gameStateInfo : Model -> Html
 gameStateInfo model =
     case model.state of
-        Solved points ->
+        Solved score ->
             text
                 ("Solved for "
-                    ++ (toString points)
-                    ++ " points!"
+                    ++ (toString score)
+                    ++ " score!"
                 )
 
         Timeout ->
@@ -375,24 +385,42 @@ gameStateInfo model =
                 ("Time is over, try again!")
 
         InProgress ->
-            text
-                ((model.clock
-                    |> toString
-                    |> (String.padLeft 2 '0')
-                 )
-                    ++ " secs left ..."
-                )
+            span
+                []
+                [ span
+                    [ class "clock" ]
+                    [ text
+                        (model.clock
+                            |> toString
+                            |> (String.padLeft 2 '0')
+                        )
+                    ]
+                , span
+                    []
+                    [ text " secs left ..." ]
+                ]
 
         Failed errors ->
-            text
-                ((model.clock
-                    |> toString
-                    |> (String.padLeft 2 '0')
-                 )
-                    ++ " secs left, correct "
-                    ++ (toString errors)
-                    ++ " errors"
-                )
+            span
+                []
+                [ span
+                    [ class "clock" ]
+                    [ text
+                        (model.clock
+                            |> toString
+                            |> (String.padLeft 2 '0')
+                        )
+                    ]
+                , span
+                    []
+                    [ text " secs left, correct " ]
+                , span
+                    [ class "errors" ]
+                    [ text (toString errors) ]
+                , span
+                    []
+                    [ text " errors!" ]
+                ]
 
 
 classForState : GameState -> String
@@ -401,7 +429,7 @@ classForState state =
         InProgress ->
             "inprogress"
 
-        Solved points ->
+        Solved score ->
             "solved"
 
         Failed items ->

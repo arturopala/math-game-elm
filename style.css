@@ -27,7 +27,19 @@ html {
   font-size: 0.8rem;
   color: orange;
   vertical-align: bottom;
-  padding: 0.5rem 1rem 0.2rem 1rem;
+  padding: 0.5rem 1rem 0 1rem;
+}
+
+.game > .achievements >.round {
+  color: black;
+  padding: 0 0.5rem;
+  font-family: 'VAGBold';
+}
+
+.game > .achievements >.score {
+  color: black;
+  padding: 0 0.5rem;
+  font-family: 'VAGBold';
 }
 
 .game > .state {
@@ -35,6 +47,15 @@ html {
   color: white;
   vertical-align: bottom;
   padding: 0.5rem 1rem 0.2rem 1rem;
+}
+
+.game > .state .clock {
+  color: red;
+  font-family: 'VAGBold';
+}
+
+.game > .state .errors {
+  font-family: 'VAGBold';
 }
 
 .game > .state.inprogress {
@@ -56,6 +77,12 @@ html {
 .exercise {
 	padding: 1rem;
 	font-size: 1.5rem;
+}
+
+.exercise > .mark {
+  position: absolute;
+  bottom: 3.5rem;
+  color: darkgray;
 }
 
 .exercise.solved {
@@ -149,4 +176,40 @@ html {
 
 @keyframes blink { 
    50% { border-bottom-color: blue; } 
+}
+
+.exercise > .row > .cell.v1 {
+  background-color: #FFFFFF;
+}
+
+.exercise > .row > .cell.v2 {
+  background-color: #FFF7DF;
+}
+
+.exercise > .row > .cell.v3 {
+  background-color: #FFEFBF;
+}
+
+.exercise > .row > .cell.v4 {
+  background-color: #FFE79F;
+}
+
+.exercise > .row > .cell.v5 {
+  background-color: #FFDF80;
+}
+
+.exercise > .row > .cell.v6 {
+  background-color: #FFD760;
+}
+
+.exercise > .row > .cell.v7 {
+  background-color: #FFCF40;
+}
+
+.exercise > .row > .cell.v8 {
+  background-color: #FFC720;
+}
+
+.exercise > .row > .cell.v9 {
+  background-color: #FFBF00;
 }
