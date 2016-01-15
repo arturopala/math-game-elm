@@ -8285,6 +8285,166 @@ Elm.Json.Decode.make = function (_elm) {
                                     ,value: value
                                     ,customDecoder: customDecoder};
 };
+Elm.Set = Elm.Set || {};
+Elm.Set.make = function (_elm) {
+   "use strict";
+   _elm.Set = _elm.Set || {};
+   if (_elm.Set.values) return _elm.Set.values;
+   var _U = Elm.Native.Utils.make(_elm),$Basics = Elm.Basics.make(_elm),$Dict = Elm.Dict.make(_elm),$List = Elm.List.make(_elm);
+   var _op = {};
+   var foldr = F3(function (f,b,_p0) {    var _p1 = _p0;return A3($Dict.foldr,F3(function (k,_p2,b) {    return A2(f,k,b);}),b,_p1._0);});
+   var foldl = F3(function (f,b,_p3) {    var _p4 = _p3;return A3($Dict.foldl,F3(function (k,_p5,b) {    return A2(f,k,b);}),b,_p4._0);});
+   var toList = function (_p6) {    var _p7 = _p6;return $Dict.keys(_p7._0);};
+   var size = function (_p8) {    var _p9 = _p8;return $Dict.size(_p9._0);};
+   var member = F2(function (k,_p10) {    var _p11 = _p10;return A2($Dict.member,k,_p11._0);});
+   var isEmpty = function (_p12) {    var _p13 = _p12;return $Dict.isEmpty(_p13._0);};
+   var Set_elm_builtin = function (a) {    return {ctor: "Set_elm_builtin",_0: a};};
+   var empty = Set_elm_builtin($Dict.empty);
+   var singleton = function (k) {    return Set_elm_builtin(A2($Dict.singleton,k,{ctor: "_Tuple0"}));};
+   var insert = F2(function (k,_p14) {    var _p15 = _p14;return Set_elm_builtin(A3($Dict.insert,k,{ctor: "_Tuple0"},_p15._0));});
+   var fromList = function (xs) {    return A3($List.foldl,insert,empty,xs);};
+   var map = F2(function (f,s) {    return fromList(A2($List.map,f,toList(s)));});
+   var remove = F2(function (k,_p16) {    var _p17 = _p16;return Set_elm_builtin(A2($Dict.remove,k,_p17._0));});
+   var union = F2(function (_p19,_p18) {    var _p20 = _p19;var _p21 = _p18;return Set_elm_builtin(A2($Dict.union,_p20._0,_p21._0));});
+   var intersect = F2(function (_p23,_p22) {    var _p24 = _p23;var _p25 = _p22;return Set_elm_builtin(A2($Dict.intersect,_p24._0,_p25._0));});
+   var diff = F2(function (_p27,_p26) {    var _p28 = _p27;var _p29 = _p26;return Set_elm_builtin(A2($Dict.diff,_p28._0,_p29._0));});
+   var filter = F2(function (p,_p30) {    var _p31 = _p30;return Set_elm_builtin(A2($Dict.filter,F2(function (k,_p32) {    return p(k);}),_p31._0));});
+   var partition = F2(function (p,_p33) {
+      var _p34 = _p33;
+      var _p35 = A2($Dict.partition,F2(function (k,_p36) {    return p(k);}),_p34._0);
+      var p1 = _p35._0;
+      var p2 = _p35._1;
+      return {ctor: "_Tuple2",_0: Set_elm_builtin(p1),_1: Set_elm_builtin(p2)};
+   });
+   return _elm.Set.values = {_op: _op
+                            ,empty: empty
+                            ,singleton: singleton
+                            ,insert: insert
+                            ,remove: remove
+                            ,isEmpty: isEmpty
+                            ,member: member
+                            ,size: size
+                            ,foldl: foldl
+                            ,foldr: foldr
+                            ,map: map
+                            ,filter: filter
+                            ,partition: partition
+                            ,union: union
+                            ,intersect: intersect
+                            ,diff: diff
+                            ,toList: toList
+                            ,fromList: fromList};
+};
+Elm.Native.Keyboard = {};
+
+Elm.Native.Keyboard.make = function(localRuntime) {
+	localRuntime.Native = localRuntime.Native || {};
+	localRuntime.Native.Keyboard = localRuntime.Native.Keyboard || {};
+	if (localRuntime.Native.Keyboard.values)
+	{
+		return localRuntime.Native.Keyboard.values;
+	}
+
+	var NS = Elm.Native.Signal.make(localRuntime);
+
+
+	function keyEvent(event)
+	{
+		return {
+			alt: event.altKey,
+			meta: event.metaKey,
+			keyCode: event.keyCode
+		};
+	}
+
+
+	function keyStream(node, eventName, handler)
+	{
+		var stream = NS.input(eventName, { alt: false, meta: false, keyCode: 0 });
+
+		localRuntime.addListener([stream.id], node, eventName, function(e) {
+			localRuntime.notify(stream.id, handler(e));
+		});
+
+		return stream;
+	}
+
+	var downs = keyStream(document, 'keydown', keyEvent);
+	var ups = keyStream(document, 'keyup', keyEvent);
+	var presses = keyStream(document, 'keypress', keyEvent);
+	var blurs = keyStream(window, 'blur', function() { return null; });
+
+
+	return localRuntime.Native.Keyboard.values = {
+		downs: downs,
+		ups: ups,
+		blurs: blurs,
+		presses: presses
+	};
+};
+
+Elm.Keyboard = Elm.Keyboard || {};
+Elm.Keyboard.make = function (_elm) {
+   "use strict";
+   _elm.Keyboard = _elm.Keyboard || {};
+   if (_elm.Keyboard.values) return _elm.Keyboard.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Char = Elm.Char.make(_elm),
+   $Native$Keyboard = Elm.Native.Keyboard.make(_elm),
+   $Set = Elm.Set.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var presses = A2($Signal.map,function (_) {    return _.keyCode;},$Native$Keyboard.presses);
+   var toXY = F2(function (_p0,keyCodes) {
+      var _p1 = _p0;
+      var is = function (keyCode) {    return A2($Set.member,keyCode,keyCodes) ? 1 : 0;};
+      return {x: is(_p1.right) - is(_p1.left),y: is(_p1.up) - is(_p1.down)};
+   });
+   var Directions = F4(function (a,b,c,d) {    return {up: a,down: b,left: c,right: d};});
+   var dropMap = F2(function (f,signal) {    return $Signal.dropRepeats(A2($Signal.map,f,signal));});
+   var EventInfo = F3(function (a,b,c) {    return {alt: a,meta: b,keyCode: c};});
+   var Blur = {ctor: "Blur"};
+   var Down = function (a) {    return {ctor: "Down",_0: a};};
+   var Up = function (a) {    return {ctor: "Up",_0: a};};
+   var rawEvents = $Signal.mergeMany(_U.list([A2($Signal.map,Up,$Native$Keyboard.ups)
+                                             ,A2($Signal.map,Down,$Native$Keyboard.downs)
+                                             ,A2($Signal.map,$Basics.always(Blur),$Native$Keyboard.blurs)]));
+   var empty = {alt: false,meta: false,keyCodes: $Set.empty};
+   var update = F2(function (event,model) {
+      var _p2 = event;
+      switch (_p2.ctor)
+      {case "Down": var _p3 = _p2._0;
+           return {alt: _p3.alt,meta: _p3.meta,keyCodes: A2($Set.insert,_p3.keyCode,model.keyCodes)};
+         case "Up": var _p4 = _p2._0;
+           return {alt: _p4.alt,meta: _p4.meta,keyCodes: A2($Set.remove,_p4.keyCode,model.keyCodes)};
+         default: return empty;}
+   });
+   var model = A3($Signal.foldp,update,empty,rawEvents);
+   var alt = A2(dropMap,function (_) {    return _.alt;},model);
+   var meta = A2(dropMap,function (_) {    return _.meta;},model);
+   var keysDown = A2(dropMap,function (_) {    return _.keyCodes;},model);
+   var arrows = A2(dropMap,toXY({up: 38,down: 40,left: 37,right: 39}),keysDown);
+   var wasd = A2(dropMap,toXY({up: 87,down: 83,left: 65,right: 68}),keysDown);
+   var isDown = function (keyCode) {    return A2(dropMap,$Set.member(keyCode),keysDown);};
+   var ctrl = isDown(17);
+   var shift = isDown(16);
+   var space = isDown(32);
+   var enter = isDown(13);
+   var Model = F3(function (a,b,c) {    return {alt: a,meta: b,keyCodes: c};});
+   return _elm.Keyboard.values = {_op: _op
+                                 ,arrows: arrows
+                                 ,wasd: wasd
+                                 ,enter: enter
+                                 ,space: space
+                                 ,ctrl: ctrl
+                                 ,shift: shift
+                                 ,alt: alt
+                                 ,meta: meta
+                                 ,isDown: isDown
+                                 ,keysDown: keysDown
+                                 ,presses: presses};
+};
 Elm.Native.Effects = {};
 Elm.Native.Effects.make = function(localRuntime) {
 
@@ -10678,6 +10838,75 @@ Elm.StartApp.make = function (_elm) {
    var Config = F4(function (a,b,c,d) {    return {init: a,update: b,view: c,inputs: d};});
    return _elm.StartApp.values = {_op: _op,start: start,Config: Config,App: App};
 };
+Elm.Matrix = Elm.Matrix || {};
+Elm.Matrix.make = function (_elm) {
+   "use strict";
+   _elm.Matrix = _elm.Matrix || {};
+   if (_elm.Matrix.values) return _elm.Matrix.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $String = Elm.String.make(_elm);
+   var _op = {};
+   var right = F2(function (a,b) {    return A2($List._op["::"],A2($Maybe.withDefault,_U.chr("0"),$List.head(b)),A2($List.take,$List.length(a) - 1,a));});
+   var left = F2(function (a,b) {
+      return A2($Basics._op["++"],A2($List.drop,1,a),_U.list([A2($Maybe.withDefault,_U.chr("0"),$List.head($List.reverse(b)))]));
+   });
+   var pull = F2(function (a,b) {    return A2($Basics._op["++"],A2($List.drop,1,a),_U.list([A2($Maybe.withDefault,_U.chr("0"),$List.head(b))]));});
+   var join = function (list) {    return function (_p0) {    return A2($Result.withDefault,0,$String.toInt($String.fromList(_p0)));}(list);};
+   var split = function (n) {    return function (_p1) {    return $String.toList($Basics.toString(_p1));}(n);};
+   var apply = F2(function (f,l) {    return f(l);});
+   var translate = function (m) {
+      var _p2 = m;
+      if (_p2.ctor === "::" && _p2._1.ctor === "::" && _p2._1._1.ctor === "::" && _p2._1._1._1.ctor === "::" && _p2._1._1._1._1.ctor === "::" && _p2._1._1._1._1._1.ctor === "[]")
+      {
+            var _p7 = _p2._1._1._1._1._0;
+            var _p6 = _p2._1._1._1._0;
+            var _p5 = _p2._1._1._0;
+            var _p4 = _p2._1._0;
+            var _p3 = _p2._0;
+            return _U.list([A2(pull,_p3,_p7),A2(right,_p4,_p3),A2(left,_p5,_p4),A2(right,_p6,_p5),A2(left,_p7,_p6)]);
+         } else {
+            return m;
+         }
+   };
+   var mirror = function (m) {
+      var _p8 = m;
+      if (_p8.ctor === "::" && _p8._1.ctor === "::" && _p8._1._1.ctor === "::" && _p8._1._1._1.ctor === "::" && _p8._1._1._1._1.ctor === "::" && _p8._1._1._1._1._1.ctor === "[]")
+      {
+            return _U.list([$List.reverse(_p8._0),_p8._1._0,$List.reverse(_p8._1._1._0),_p8._1._1._1._0,$List.reverse(_p8._1._1._1._1._0)]);
+         } else {
+            return m;
+         }
+   };
+   var rotate = function (m) {
+      var _p9 = m;
+      if (_p9.ctor === "::" && _p9._1.ctor === "::" && _p9._1._1.ctor === "::" && _p9._1._1._1.ctor === "::" && _p9._1._1._1._1.ctor === "::" && _p9._1._1._1._1._1.ctor === "[]")
+      {
+            return _U.list([_p9._1._1._1._1._0,$List.reverse(_p9._0),_p9._1._0,$List.reverse(_p9._1._1._0),_p9._1._1._1._0]);
+         } else {
+            return m;
+         }
+   };
+   var transformN = F2(function (n,m) {
+      return A3($List.foldl,apply,m,A2($List.take,n,A2($List.intersperse,translate,A2($List.intersperse,rotate,A2($List.repeat,n,mirror)))));
+   });
+   return _elm.Matrix.values = {_op: _op
+                               ,rotate: rotate
+                               ,mirror: mirror
+                               ,translate: translate
+                               ,transformN: transformN
+                               ,apply: apply
+                               ,split: split
+                               ,join: join
+                               ,pull: pull
+                               ,left: left
+                               ,right: right};
+};
 Elm.CharRow = Elm.CharRow || {};
 Elm.CharRow.make = function (_elm) {
    "use strict";
@@ -10694,14 +10923,12 @@ Elm.CharRow.make = function (_elm) {
    $Signal = Elm.Signal.make(_elm),
    $String = Elm.String.make(_elm);
    var _op = {};
-   var charView = F2(function (address,character) {
+   var charView = function (character) {
       var digit = $String.fromChar(character);
       return A2($Html.span,_U.list([$Html$Attributes.$class(A2($Basics._op["++"],"cell v",digit))]),_U.list([$Html.text(digit)]));
-   });
-   var view = F2(function (address,model) {    return A2($Html.div,_U.list([$Html$Attributes.$class("row")]),A2($List.map,charView(address),model));});
-   var update = F2(function (message,model) {    var _p0 = message;return model;});
-   var Noop = {ctor: "Noop"};
-   return _elm.CharRow.values = {_op: _op,Noop: Noop,update: update,view: view,charView: charView};
+   };
+   var view = function (model) {    return A2($Html.div,_U.list([$Html$Attributes.$class("row")]),A2($List.map,charView,model));};
+   return _elm.CharRow.values = {_op: _op,view: view,charView: charView};
 };
 Elm.InputRow = Elm.InputRow || {};
 Elm.InputRow.make = function (_elm) {
@@ -10715,59 +10942,41 @@ Elm.InputRow.make = function (_elm) {
    $Debug = Elm.Debug.make(_elm),
    $Html = Elm.Html.make(_elm),
    $Html$Attributes = Elm.Html.Attributes.make(_elm),
-   $Html$Events = Elm.Html.Events.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $String = Elm.String.make(_elm);
    var _op = {};
-   var KeyPressed = function (a) {    return {ctor: "KeyPressed",_0: a};};
-   var NewCharInput = F2(function (a,b) {    return {ctor: "NewCharInput",_0: a,_1: b};});
    var inputFieldView = F5(function (address,cursorPosition,showErrors,showSolution,_p0) {
       var _p1 = _p0;
-      var _p4 = _p1._1;
-      var _p3 = _p1._0._0;
+      var _p3 = _p1._1;
       var _p2 = _p1._0._1;
-      var valueOrPlaceHolder = function ($char) {
-         return $Char.isDigit($char) ? $Html$Attributes.value($String.fromChar($char)) : $Html$Attributes.value("");
-      };
-      var keyPreesHandler = A2($Html$Events.onKeyDown,address,function (code) {    return KeyPressed(code);});
-      var inputChangeHandler = A3($Html$Events.on,
-      "input",
-      $Html$Events.targetValue,
-      function (t) {
-         return A2($Signal.message,address,A2(NewCharInput,_p3,A2($Maybe.withDefault,_U.chr("?"),$List.head($String.toList(t)))));
-      });
-      var haveFocus = _U.eq(cursorPosition,_p3) ? $Html$Attributes.autofocus(true) : A2($Html$Attributes.attribute,"data-nofocus","");
+      var valueOrPlaceHolder = function ($char) {    return $Char.isDigit($char) ? $String.fromChar($char) : "";};
+      var content = showSolution ? $String.fromChar(_p3) : valueOrPlaceHolder(_p2);
       return A2($Html.span,
-      _U.list([$Html$Attributes.$class("cell solution")]),
-      _U.list([A2($Html.input,
-      _U.list([$Html$Attributes.type$("text")
-              ,$Html$Attributes.classList(_U.list([{ctor: "_Tuple2",_0: "noselect",_1: true},{ctor: "_Tuple2",_0: "wrong",_1: !_U.eq(_p2,_p4)}]))
-              ,showSolution ? $Html$Attributes.value($String.fromChar(_p4)) : valueOrPlaceHolder(_p2)
-              ,haveFocus
-              ,$Html$Attributes.maxlength(1)
-              ,$Html$Attributes.tabindex(100 - _p3)
-              ,inputChangeHandler
-              ,keyPreesHandler]),
-      _U.list([]))]));
+      _U.list([$Html$Attributes.classList(_U.list([{ctor: "_Tuple2",_0: "cell",_1: true}
+                                                  ,{ctor: "_Tuple2",_0: "input",_1: true}
+                                                  ,{ctor: "_Tuple2",_0: "focus",_1: _U.eq(cursorPosition,_p1._0._0)}
+                                                  ,{ctor: "_Tuple2",_0: "wrong",_1: !_U.eq(_p2,_p3)}]))]),
+      _U.list([$Html.text(content)]));
    });
    var view = F2(function (address,model) {
       return A2($Html.div,
-      _U.list([$Html$Attributes.$class("row solution")]),
+      _U.list([$Html$Attributes.$class("row input")]),
       A2($List.map,
       A4(inputFieldView,address,model.cursorPosition,model.showErrors,model.showSolution),
       A3($List.map2,F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}),$Array.toIndexedList(model.input),model.solution)));
    });
+   var Noop = {ctor: "Noop"};
    var Model = F5(function (a,b,c,d,e) {    return {solution: a,input: b,cursorPosition: c,showErrors: d,showSolution: e};});
-   return _elm.InputRow.values = {_op: _op,Model: Model,NewCharInput: NewCharInput,KeyPressed: KeyPressed,view: view,inputFieldView: inputFieldView};
+   return _elm.InputRow.values = {_op: _op,Model: Model,Noop: Noop,view: view,inputFieldView: inputFieldView};
 };
-Elm.Addition = Elm.Addition || {};
-Elm.Addition.make = function (_elm) {
+Elm.AdditionGame = Elm.AdditionGame || {};
+Elm.AdditionGame.make = function (_elm) {
    "use strict";
-   _elm.Addition = _elm.Addition || {};
-   if (_elm.Addition.values) return _elm.Addition.values;
+   _elm.AdditionGame = _elm.AdditionGame || {};
+   if (_elm.AdditionGame.values) return _elm.AdditionGame.values;
    var _U = Elm.Native.Utils.make(_elm),
    $Array = Elm.Array.make(_elm),
    $Basics = Elm.Basics.make(_elm),
@@ -10779,18 +10988,13 @@ Elm.Addition.make = function (_elm) {
    $Html$Attributes = Elm.Html.Attributes.make(_elm),
    $InputRow = Elm.InputRow.make(_elm),
    $List = Elm.List.make(_elm),
+   $Matrix = Elm.Matrix.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $String = Elm.String.make(_elm);
    var _op = {};
-   var toCharList = F2(function (width,number) {
-      var string = $Basics.toString(number);
-      var remaining = width - $String.length(string);
-      var spaces = A2($String.repeat,remaining," ");
-      var row = A2($Basics._op["++"],spaces,string);
-      return $String.toList(row);
-   });
+   var viewBoard = F2(function (address,model) {    return A2($List.map,$CharRow.view,model.board.numbers);});
    var classForState = function (state) {
       var _p0 = state;
       switch (_p0.ctor)
@@ -10799,11 +11003,95 @@ Elm.Addition.make = function (_elm) {
          case "Failed": return "wrong";
          default: return "timeout";}
    };
+   var countErrors = F2(function (solution,input) {
+      return $List.length(A2($List.filter,
+      function (_p1) {
+         var _p2 = _p1;
+         return !_U.eq(_p2._0,_p2._1);
+      },
+      A3($List.map2,F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}),solution,input)));
+   });
+   var updateInput = F3(function (input,pos,$char) {    return $Char.isDigit($char) ? A3($Array.set,pos,$char,input) : A3($Array.set,pos,_U.chr(" "),input);});
+   var moveCursorRight = function (model) {    return _U.update(model,{cursorPosition: A2($Basics._op["%"],model.cursorPosition + 1,model.board.width)});};
+   var moveCursorLeft = function (model) {    return _U.update(model,{cursorPosition: A2($Basics._op["%"],model.cursorPosition - 1,model.board.width)});};
+   var Tick = {ctor: "Tick"};
+   var ArrowRight = {ctor: "ArrowRight"};
+   var ArrowLeft = {ctor: "ArrowLeft"};
+   var KeyPressed = function (a) {    return {ctor: "KeyPressed",_0: a};};
+   var Noop = {ctor: "Noop"};
+   var arrowAsAction = function (_p3) {    var _p4 = _p3;var _p5 = _p4.x;return _U.eq(_p5,1) ? ArrowRight : _U.eq(_p5,-1) ? ArrowLeft : Noop;};
+   var inputRowAction = function (a) {    var _p6 = a;return Noop;};
+   var seed = A2($List.map,$Matrix.split,_U.list([12345,23456,34567,45678,56789]));
+   var Model = F6(function (a,b,c,d,e,f) {    return {board: a,input: b,cursorPosition: c,state: d,clock: e,achievements: f};});
+   var Board = F4(function (a,b,c,d) {    return {numbers: a,solution: b,width: c,height: d};});
+   var Achievements = F2(function (a,b) {    return {round: a,score: b};});
+   var Timeout = {ctor: "Timeout"};
+   var viewInputRow = F2(function (address,model) {
+      return A2($InputRow.view,
+      A2($Signal.forwardTo,address,inputRowAction),
+      A5($InputRow.Model,model.board.solution,model.input,model.cursorPosition,true,_U.eq(model.state,Timeout)));
+   });
+   var Failed = function (a) {    return {ctor: "Failed",_0: a};};
+   var Solved = function (a) {    return {ctor: "Solved",_0: a};};
+   var InProgress = {ctor: "InProgress"};
+   var updateState = F3(function (model,input,clock) {
+      var _p7 = model.state;
+      switch (_p7.ctor)
+      {case "Solved": return {ctor: "_Tuple2",_0: Solved(_p7._0),_1: 0};
+         case "Timeout": return {ctor: "_Tuple2",_0: Timeout,_1: 0};
+         default: var correctInputs = model.board.width - A2(countErrors,model.board.solution,input);
+           return _U.eq(clock,0) ? {ctor: "_Tuple2",_0: Timeout,_1: correctInputs} : _U.eq(input,model.board.solution) ? {ctor: "_Tuple2"
+                                                                                                                         ,_0: Solved(clock + correctInputs)
+                                                                                                                         ,_1: clock + correctInputs} : A2($List.all,
+           $Char.isDigit,
+           input) ? {ctor: "_Tuple2",_0: Failed(A2(countErrors,model.board.solution,input)),_1: 0} : {ctor: "_Tuple2",_0: InProgress,_1: 0};}
+   });
+   var updateModelWithNewInput = F2(function (model,character) {
+      var achievements = model.achievements;
+      var isdeleted = _U.eq(character,_U.chr("?"));
+      var position = model.cursorPosition;
+      var newinput = A3(updateInput,model.input,position,character);
+      var _p8 = A3(updateState,model,$Array.toList(newinput),model.clock);
+      var newstate = _p8._0;
+      var earned = _p8._1;
+      var newachievements = _U.update(achievements,{score: achievements.score + earned});
+      var newposition = A2($Basics._op["%"],isdeleted ? position : position - 1,model.board.width);
+      var _p9 = model.state;
+      switch (_p9.ctor)
+      {case "Solved": return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
+         case "Timeout": return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
+         default: return {ctor: "_Tuple2"
+                         ,_0: _U.update(model,
+                         {input: newinput
+                         ,cursorPosition: newposition
+                         ,state: newstate
+                         ,achievements: newachievements
+                         ,clock: function () {
+                            var _p10 = newstate;
+                            if (_p10.ctor === "Solved") {
+                                  return 0;
+                               } else {
+                                  return model.clock;
+                               }
+                         }()})
+                         ,_1: $Effects.none};}
+   });
+   var waitPeriod = 7;
    var gameStateInfo = function (model) {
-      var _p1 = model.state;
-      switch (_p1.ctor)
-      {case "Solved": return $Html.text(A2($Basics._op["++"],"Solved for ",A2($Basics._op["++"],$Basics.toString(_p1._0)," score!")));
-         case "Timeout": return $Html.text("Time is over, try again!");
+      var _p11 = model.state;
+      switch (_p11.ctor)
+      {case "Solved": return A2($Html.span,
+           _U.list([]),
+           _U.list([$Html.text("Solved! ")
+                   ,A2($Html.span,_U.list([$Html$Attributes.$class("score")]),_U.list([$Html.text(A2($Basics._op["++"],"+",$Basics.toString(_p11._0)))]))
+                   ,$Html.text(" points! Next for ")
+                   ,A2($Html.span,_U.list([$Html$Attributes.$class("clock")]),_U.list([$Html.text($Basics.toString(waitPeriod + model.clock))]))
+                   ,$Html.text(" secs")]));
+         case "Timeout": return A2($Html.span,
+           _U.list([]),
+           _U.list([$Html.text("Time is over, try next for ")
+                   ,A2($Html.span,_U.list([$Html$Attributes.$class("clock")]),_U.list([$Html.text($Basics.toString(waitPeriod + model.clock))]))
+                   ,$Html.text(" secs")]));
          case "InProgress": return A2($Html.span,
            _U.list([]),
            _U.list([A2($Html.span,
@@ -10816,206 +11104,100 @@ Elm.Addition.make = function (_elm) {
                    _U.list([$Html$Attributes.$class("clock")]),
                    _U.list([$Html.text(A3($String.padLeft,2,_U.chr("0"),$Basics.toString(model.clock)))]))
                    ,A2($Html.span,_U.list([]),_U.list([$Html.text(" secs left, correct ")]))
-                   ,A2($Html.span,_U.list([$Html$Attributes.$class("errors")]),_U.list([$Html.text($Basics.toString(_p1._0))]))
+                   ,A2($Html.span,_U.list([$Html$Attributes.$class("errors")]),_U.list([$Html.text($Basics.toString(_p11._0))]))
                    ,A2($Html.span,_U.list([]),_U.list([$Html.text(" errors!")]))]));}
    };
-   var countErrors = F2(function (solution,input) {
-      return $List.length(A2($List.filter,
-      function (_p2) {
-         var _p3 = _p2;
-         return !_U.eq(_p3._0,_p3._1);
-      },
-      A3($List.map2,F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}),solution,input)));
-   });
-   var earnedPoints = function (state) {    var _p4 = state;if (_p4.ctor === "Solved") {    return _p4._0;} else {    return 0;}};
-   var updateInput = F3(function (input,pos,$char) {    return $Char.isDigit($char) ? A3($Array.set,pos,$char,input) : A3($Array.set,pos,_U.chr(" "),input);});
-   var Tick = {ctor: "Tick"};
-   var InputKeyPressed = function (a) {    return {ctor: "InputKeyPressed",_0: a};};
-   var NewCharInput = F2(function (a,b) {    return {ctor: "NewCharInput",_0: a,_1: b};});
-   var inputRowAction = function (a) {
-      var _p5 = a;
-      if (_p5.ctor === "NewCharInput") {
-            return A2(NewCharInput,_p5._0,_p5._1);
-         } else {
-            return InputKeyPressed(_p5._0);
-         }
-   };
-   var Noop = {ctor: "Noop"};
-   var charRowAction = function (a) {    var _p6 = a;return Noop;};
-   var viewNumberRows = F2(function (address,model) {
-      return A2($List.map,$CharRow.view(A2($Signal.forwardTo,address,charRowAction)),A2($List.map,toCharList(model.width),model.numbers));
-   });
-   var right = F2(function (a,b) {    return A2($List._op["::"],A2($Maybe.withDefault,_U.chr("0"),$List.head(b)),A2($List.take,$List.length(a) - 1,a));});
-   var left = F2(function (a,b) {
-      return A2($Basics._op["++"],A2($List.drop,1,a),_U.list([A2($Maybe.withDefault,_U.chr("0"),$List.head($List.reverse(b)))]));
-   });
-   var pull = F2(function (a,b) {    return A2($Basics._op["++"],A2($List.drop,1,a),_U.list([A2($Maybe.withDefault,_U.chr("0"),$List.head(b))]));});
-   var join = function (list) {    return function (_p7) {    return A2($Result.withDefault,0,$String.toInt($String.fromList(_p7)));}(list);};
-   var split = function (n) {    return function (_p8) {    return $String.toList($Basics.toString(_p8));}(n);};
-   var apply = F2(function (f,l) {    return f(l);});
-   var translate = function (m) {
-      var _p9 = m;
-      if (_p9.ctor === "::" && _p9._1.ctor === "::" && _p9._1._1.ctor === "::" && _p9._1._1._1.ctor === "::" && _p9._1._1._1._1.ctor === "::" && _p9._1._1._1._1._1.ctor === "[]")
-      {
-            var _p14 = _p9._1._1._1._1._0;
-            var _p13 = _p9._1._1._1._0;
-            var _p12 = _p9._1._1._0;
-            var _p11 = _p9._1._0;
-            var _p10 = _p9._0;
-            return _U.list([A2(pull,_p10,_p14),A2(right,_p11,_p10),A2(left,_p12,_p11),A2(right,_p13,_p12),A2(left,_p14,_p13)]);
-         } else {
-            return m;
-         }
-   };
-   var mirror = function (m) {
-      var _p15 = m;
-      if (_p15.ctor === "::" && _p15._1.ctor === "::" && _p15._1._1.ctor === "::" && _p15._1._1._1.ctor === "::" && _p15._1._1._1._1.ctor === "::" && _p15._1._1._1._1._1.ctor === "[]")
-      {
-            return _U.list([$List.reverse(_p15._0),_p15._1._0,$List.reverse(_p15._1._1._0),_p15._1._1._1._0,$List.reverse(_p15._1._1._1._1._0)]);
-         } else {
-            return m;
-         }
-   };
-   var rotate = function (m) {
-      var _p16 = m;
-      if (_p16.ctor === "::" && _p16._1.ctor === "::" && _p16._1._1.ctor === "::" && _p16._1._1._1.ctor === "::" && _p16._1._1._1._1.ctor === "::" && _p16._1._1._1._1._1.ctor === "[]")
-      {
-            return _U.list([_p16._1._1._1._1._0,$List.reverse(_p16._0),_p16._1._0,$List.reverse(_p16._1._1._0),_p16._1._1._1._0]);
-         } else {
-            return m;
-         }
-   };
-   var changeN = F2(function (n,m) {
-      return A3($List.foldl,apply,m,A2($List.take,n,A2($List.intersperse,translate,A2($List.intersperse,rotate,A2($List.repeat,n,mirror)))));
-   });
-   var seed = A2($List.map,split,_U.list([12345,23456,34567,45678,56789]));
-   var Model = F8(function (a,b,c,d,e,f,g,h) {    return {numbers: a,solution: b,width: c,input: d,cursorPosition: e,state: f,clock: g,achievements: h};});
-   var Achievements = F2(function (a,b) {    return {round: a,score: b};});
-   var Timeout = {ctor: "Timeout"};
-   var viewInputRow = F2(function (address,model) {
-      return A2($InputRow.view,
-      A2($Signal.forwardTo,address,inputRowAction),
-      A5($InputRow.Model,model.solution,model.input,model.cursorPosition,true,_U.eq(model.state,Timeout)));
-   });
    var view = F2(function (address,model) {
+      var statePanel = A2($Html.div,_U.list([$Html$Attributes.$class("state")]),_U.list([gameStateInfo(model)]));
+      var achievementsPanel = A2($Html.div,
+      _U.list([$Html$Attributes.$class("achievements")]),
+      _U.list([A2($Html.span,_U.list([]),_U.list([$Html.text("Round")]))
+              ,A2($Html.span,_U.list([$Html$Attributes.$class("round")]),_U.list([$Html.text($Basics.toString(model.achievements.round + 1))]))
+              ,A2($Html.span,_U.list([]),_U.list([$Html.text("Score")]))
+              ,A2($Html.span,_U.list([$Html$Attributes.$class("score")]),_U.list([$Html.text($Basics.toString(model.achievements.score))]))]));
       var inputRow = A2(viewInputRow,address,model);
-      var numberRows = A2(viewNumberRows,address,model);
+      var numberRows = A2(viewBoard,address,model);
+      var exercisePanel = A2($Html.div,
+      _U.list([$Html$Attributes.$class("exercise")]),
+      A2($Basics._op["++"],numberRows,_U.list([inputRow,A2($Html.div,_U.list([$Html$Attributes.$class("mark")]),_U.list([$Html.text("+")]))])));
       return A2($Html.div,
-      _U.list([$Html$Attributes.$class("game")]),
-      _U.list([A2($Html.div,
-              _U.list([$Html$Attributes.$class("achievements")]),
-              _U.list([A2($Html.span,_U.list([]),_U.list([$Html.text("Round")]))
-                      ,A2($Html.span,_U.list([$Html$Attributes.$class("round")]),_U.list([$Html.text($Basics.toString(model.achievements.round + 1))]))
-                      ,A2($Html.span,_U.list([]),_U.list([$Html.text("Score")]))
-                      ,A2($Html.span,_U.list([$Html$Attributes.$class("score")]),_U.list([$Html.text($Basics.toString(model.achievements.score))]))]))
-              ,A2($Html.div,
-              _U.list([$Html$Attributes.classList(_U.list([{ctor: "_Tuple2",_0: "state",_1: true}
-                                                          ,{ctor: "_Tuple2",_0: classForState(model.state),_1: true}]))]),
-              _U.list([gameStateInfo(model)]))
-              ,A2($Html.div,
-              _U.list([$Html$Attributes.classList(_U.list([{ctor: "_Tuple2",_0: "exercise",_1: true}
-                                                          ,{ctor: "_Tuple2",_0: classForState(model.state),_1: true}]))]),
-              A2($Basics._op["++"],numberRows,_U.list([inputRow,A2($Html.div,_U.list([$Html$Attributes.$class("mark")]),_U.list([$Html.text("+")]))])))]));
-   });
-   var Failed = function (a) {    return {ctor: "Failed",_0: a};};
-   var Solved = function (a) {    return {ctor: "Solved",_0: a};};
-   var InProgress = {ctor: "InProgress"};
-   var updateState = F4(function (state,solution,input,clock) {
-      var _p17 = state;
-      switch (_p17.ctor)
-      {case "Solved": return Solved(_p17._0);
-         case "Timeout": return Timeout;
-         default: return _U.cmp(clock,0) < 1 ? Timeout : _U.eq(input,solution) ? Solved(clock + $List.length(solution) - A2(countErrors,
-           solution,
-           input)) : A2($List.all,$Char.isDigit,input) ? Failed(A2(countErrors,solution,input)) : InProgress;}
+      _U.list([$Html$Attributes.classList(_U.list([{ctor: "_Tuple2",_0: "game",_1: true},{ctor: "_Tuple2",_0: classForState(model.state),_1: true}]))]),
+      _U.list([achievementsPanel,statePanel,exercisePanel]));
    });
    var timefactor = 2;
    var createModel = F2(function (numbers,achievements) {
-      var seconds = $Basics.ceiling(timefactor * $Basics.toFloat($List.length(numbers) + $List.sum(A2($List.map,
-      function (_p18) {
-         return $String.length($Basics.toString(_p18));
-      },
-      numbers))));
-      var solution = $String.toList($Basics.toString($List.sum(numbers)));
+      var height = $List.length(numbers);
+      var solution = $Matrix.split($List.sum(A2($List.map,$Matrix.join,numbers)));
+      var _p12 = A2($Debug.log,"",$Matrix.join(solution));
       var width = $List.length(solution);
       var input = A2($Array.repeat,width,_U.chr(" "));
-      return A8(Model,numbers,solution,width,input,width - 1,InProgress,seconds,achievements);
+      var seconds = $Basics.ceiling(timefactor * $Basics.toFloat(height * width));
+      var board = A4(Board,numbers,solution,width,height);
+      return A6(Model,board,input,width - 1,InProgress,seconds,achievements);
    });
    var createNextModel = function (achievements) {
-      var numbers = A2($List.map,join,A2(changeN,achievements.round,seed));
+      var numbers = A2($Matrix.transformN,achievements.round,seed);
       return A2(createModel,numbers,achievements);
    };
    var init = {ctor: "_Tuple2",_0: createNextModel(A2(Achievements,0,0)),_1: $Effects.none};
-   var update = F2(function (message,model) {
-      var _p19 = message;
-      switch (_p19.ctor)
-      {case "Noop": return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
-         case "InputKeyPressed": var _p20 = _p19._0;
-           switch (_p20)
-           {case 37: return {ctor: "_Tuple2"
-                            ,_0: _U.update(model,{cursorPosition: A2($Basics._op["%"],model.cursorPosition - 1,model.width)})
-                            ,_1: $Effects.none};
-              case 39: return {ctor: "_Tuple2"
-                              ,_0: _U.update(model,{cursorPosition: A2($Basics._op["%"],model.cursorPosition + 1,model.width)})
-                              ,_1: $Effects.none};
-              default: return {ctor: "_Tuple2",_0: model,_1: $Effects.none};}
-         case "NewCharInput": var _p23 = _p19._0;
-           var _p22 = _p19._1;
-           var isdeleted = _U.eq(_p22,_U.chr("?"));
-           var newposition = A2($Basics._op["%"],isdeleted ? _p23 : _p23 - 1,model.width);
-           var newinput = A3(updateInput,model.input,_p23,_p22);
-           var newstate = A4(updateState,model.state,model.solution,$Array.toList(newinput),model.clock);
-           var _p21 = model.state;
-           switch (_p21.ctor)
-           {case "Solved": return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
-              case "Timeout": return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
-              default: return {ctor: "_Tuple2",_0: _U.update(model,{input: newinput,cursorPosition: newposition,state: newstate}),_1: $Effects.none};}
-         default: var achievements = model.achievements;
-           var newclock = model.clock - 1;
-           var newmodel = _U.cmp(newclock,-10) < 0 ? createNextModel(_U.update(achievements,
-           {round: achievements.round + 1,score: model.achievements.score + earnedPoints(model.state)})) : _U.update(model,
-           {clock: newclock,state: A4(updateState,model.state,model.solution,$Array.toList(model.input),newclock)});
-           return {ctor: "_Tuple2",_0: newmodel,_1: $Effects.none};}
+   var updateModelWithNewClock = F2(function (model,clock) {
+      var _p13 = A3(updateState,model,$Array.toList(model.input),clock);
+      var newstate = _p13._0;
+      var earned = _p13._1;
+      var achievements = model.achievements;
+      var newachievements = _U.update(achievements,{score: achievements.score + earned});
+      var newmodel = _U.eq(clock,0 - waitPeriod) ? createNextModel(_U.update(achievements,{round: achievements.round + 1})) : _U.update(model,
+      {clock: clock,state: newstate,achievements: newachievements});
+      return {ctor: "_Tuple2",_0: newmodel,_1: $Effects.none};
    });
-   return _elm.Addition.values = {_op: _op
-                                 ,timefactor: timefactor
-                                 ,InProgress: InProgress
-                                 ,Solved: Solved
-                                 ,Failed: Failed
-                                 ,Timeout: Timeout
-                                 ,Achievements: Achievements
-                                 ,Model: Model
-                                 ,init: init
-                                 ,createNextModel: createNextModel
-                                 ,createModel: createModel
-                                 ,seed: seed
-                                 ,rotate: rotate
-                                 ,mirror: mirror
-                                 ,translate: translate
-                                 ,changeN: changeN
-                                 ,apply: apply
-                                 ,split: split
-                                 ,join: join
-                                 ,pull: pull
-                                 ,left: left
-                                 ,right: right
-                                 ,Noop: Noop
-                                 ,NewCharInput: NewCharInput
-                                 ,InputKeyPressed: InputKeyPressed
-                                 ,Tick: Tick
-                                 ,update: update
-                                 ,updateInput: updateInput
-                                 ,updateState: updateState
-                                 ,earnedPoints: earnedPoints
-                                 ,countErrors: countErrors
-                                 ,view: view
-                                 ,gameStateInfo: gameStateInfo
-                                 ,classForState: classForState
-                                 ,viewNumberRows: viewNumberRows
-                                 ,charRowAction: charRowAction
-                                 ,toCharList: toCharList
-                                 ,viewInputRow: viewInputRow
-                                 ,inputRowAction: inputRowAction};
+   var update = F2(function (message,model) {
+      var _p14 = message;
+      switch (_p14.ctor)
+      {case "KeyPressed": var _p15 = _p14._0;
+           var digit = _p15 - 48;
+           var character = $Char.fromCode(_p15);
+           return _U.cmp(digit,0) > -1 && _U.cmp(digit,9) < 1 ? A2(updateModelWithNewInput,model,character) : _U.eq(_p15,127) ? A2(updateModelWithNewInput,
+           model,
+           _U.chr("?")) : {ctor: "_Tuple2",_0: model,_1: $Effects.none};
+         case "ArrowRight": return {ctor: "_Tuple2",_0: moveCursorRight(model),_1: $Effects.none};
+         case "ArrowLeft": return {ctor: "_Tuple2",_0: moveCursorLeft(model),_1: $Effects.none};
+         case "Tick": return A2(updateModelWithNewClock,model,model.clock - 1);
+         default: return {ctor: "_Tuple2",_0: model,_1: $Effects.none};}
+   });
+   return _elm.AdditionGame.values = {_op: _op
+                                     ,timefactor: timefactor
+                                     ,waitPeriod: waitPeriod
+                                     ,InProgress: InProgress
+                                     ,Solved: Solved
+                                     ,Failed: Failed
+                                     ,Timeout: Timeout
+                                     ,Achievements: Achievements
+                                     ,Board: Board
+                                     ,Model: Model
+                                     ,seed: seed
+                                     ,init: init
+                                     ,createNextModel: createNextModel
+                                     ,createModel: createModel
+                                     ,Noop: Noop
+                                     ,KeyPressed: KeyPressed
+                                     ,ArrowLeft: ArrowLeft
+                                     ,ArrowRight: ArrowRight
+                                     ,Tick: Tick
+                                     ,arrowAsAction: arrowAsAction
+                                     ,update: update
+                                     ,updateModelWithNewInput: updateModelWithNewInput
+                                     ,updateModelWithNewClock: updateModelWithNewClock
+                                     ,updateState: updateState
+                                     ,moveCursorLeft: moveCursorLeft
+                                     ,moveCursorRight: moveCursorRight
+                                     ,updateInput: updateInput
+                                     ,countErrors: countErrors
+                                     ,view: view
+                                     ,gameStateInfo: gameStateInfo
+                                     ,classForState: classForState
+                                     ,viewBoard: viewBoard
+                                     ,viewInputRow: viewInputRow
+                                     ,inputRowAction: inputRowAction};
 };
 Elm.Main = Elm.Main || {};
 Elm.Main.make = function (_elm) {
@@ -11023,9 +11205,10 @@ Elm.Main.make = function (_elm) {
    _elm.Main = _elm.Main || {};
    if (_elm.Main.values) return _elm.Main.values;
    var _U = Elm.Native.Utils.make(_elm),
-   $Addition = Elm.Addition.make(_elm),
+   $AdditionGame = Elm.AdditionGame.make(_elm),
    $Basics = Elm.Basics.make(_elm),
    $Debug = Elm.Debug.make(_elm),
+   $Keyboard = Elm.Keyboard.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
@@ -11033,10 +11216,12 @@ Elm.Main.make = function (_elm) {
    $StartApp = Elm.StartApp.make(_elm),
    $Time = Elm.Time.make(_elm);
    var _op = {};
-   var app = $StartApp.start({init: $Addition.init
-                             ,update: $Addition.update
-                             ,view: $Addition.view
-                             ,inputs: _U.list([A2($Signal.map,function (_p0) {    return $Addition.Tick;},$Time.fps(1))])});
+   var app = $StartApp.start({init: $AdditionGame.init
+                             ,update: $AdditionGame.update
+                             ,view: $AdditionGame.view
+                             ,inputs: _U.list([A2($Signal.map,function (_p0) {    return $AdditionGame.Tick;},$Time.fps(1))
+                                              ,A2($Signal.map,function (code) {    return $AdditionGame.KeyPressed(code);},$Keyboard.presses)
+                                              ,A2($Signal.map,$AdditionGame.arrowAsAction,$Keyboard.arrows)])});
    var main = app.html;
    return _elm.Main.values = {_op: _op,app: app,main: main};
 };

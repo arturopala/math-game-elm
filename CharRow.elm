@@ -14,33 +14,18 @@ type alias Model =
 
 
 
--- UPDATE
-
-
-type Action
-    = Noop
-
-
-update : Action -> Model -> Model
-update message model =
-    case message of
-        Noop ->
-            model
-
-
-
 -- VIEW
 
 
-view : Signal.Address Action -> Model -> Html
-view address model =
+view : Model -> Html
+view model =
     div
         [ class "row" ]
-        (List.map (charView address) model)
+        (List.map charView model)
 
 
-charView : Signal.Address Action -> Char -> Html
-charView address character =
+charView : Char -> Html
+charView character =
     let
         digit = (String.fromChar character)
     in

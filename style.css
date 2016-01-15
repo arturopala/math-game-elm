@@ -25,18 +25,18 @@ html {
 
 .game > .achievements {
   font-size: 0.8rem;
-  color: orange;
+  color: #ff7200;
   vertical-align: bottom;
   padding: 0.5rem 1rem 0 1rem;
 }
 
-.game > .achievements >.round {
+.game > .achievements .round {
   color: black;
   padding: 0 0.5rem;
   font-family: 'VAGBold';
 }
 
-.game > .achievements >.score {
+.game > .achievements .score {
   color: black;
   padding: 0 0.5rem;
   font-family: 'VAGBold';
@@ -50,7 +50,12 @@ html {
 }
 
 .game > .state .clock {
-  color: red;
+  color: #ff7200;
+  font-family: 'VAGBold';
+}
+
+.game > .state .score {
+  color: black;
   font-family: 'VAGBold';
 }
 
@@ -58,158 +63,147 @@ html {
   font-family: 'VAGBold';
 }
 
-.game > .state.inprogress {
+.game.inprogress > .state {
   color: darkgray;
 }
 
-.game > .state.solved {
+.game.solved > .state {
   color: green;
 }
 
-.game > .state.timeout {
-  color: gray;
+.game.timeout > .state {
+  color: #ff7200;
 }
 
-.game > .state.wrong {
+.game.wrong > .state {
   color: red;
 }
 
-.exercise {
+.game > .exercise {
 	padding: 1rem;
 	font-size: 1.5rem;
 }
 
-.exercise > .mark {
+.game > .exercise > .mark {
   position: absolute;
-  bottom: 3.5rem;
-  color: darkgray;
+  bottom: 2.5em;
+  left: 1em;
+  color: black;
 }
 
-.exercise.solved {
+.game.solved > .exercise {
   border:5pt solid green;
 }
 
-.exercise.wrong {
+.game.wrong > .exercise {
   border:5pt dotted red;
 }
 
-.exercise.timeout {
+.game.timeout > .exercise {
   border:5pt solid gray;
   pointer-events: none;
   color: gray!important;
 }
 
-.exercise > .row {
+.game > .exercise > .row {
   white-space:nowrap;
+  text-align: right;
 }
 
-.exercise > .solution {
-  border-top: 3pt solid darkgray;
+.game > .exercise > .row.input {
+  border-top: 0.1em solid #ff7200;
 }
 
-.exercise > .row > .cell {
-	width: 1.1em;
+.game > .exercise > .row > .cell {
+	width: 1.4em;
+  height: 1.4em;
   display: inline-block;
   text-align: center;
-  vertical-align: middle;
+  vertical-align: bottom;
+  padding-top: 0.15em;
+  box-sizing: border-box;
 }
 
-.exercise > .row > .cell > input {
-  border: 0 none transparent;
-  background-color: transparent;
-  width: 1em;
-  font-family: 'VAGLight';
-  font-size: 1.5rem;
-  text-align: center;
-  vertical-align: middle;
+.game > .exercise > .row > .cell.input {
   border-bottom: 3px solid transparent;
-  outline: none;
 }
 
-.exercise.inprogress > .row > .cell > input {
+.game.inprogress > .exercise > .row > .cell.input {
   color: blue;
 }
 
-.exercise.solved > .row > .cell > input {
+.game.solved > .exercise > .row > .cell.input {
   color: green;
 }
 
-.exercise.wrong > .row > .cell > input {
+.game.wrong > .exercise > .row > .cell.input {
   color: blue;
 }
 
-.exercise.timeout > .row.solution > .cell > input {
-  background-color: white;
-  color: black;
+.game.timeout > .exercise > .row.input > .cell.input {
+  color: green;
 }
 
-.exercise.timeout > .row > .cell > input.wrong {
-  background-color: red !important;
-  color: white !important;
+.game.timeout > .exercise > .row > .cell.input.wrong {
+  background-color: red;
+  color: white;
 }
 
-.exercise.inprogress > .row > .cell > input:focus {
-  border-bottom: 3px solid transparent;
+.game.inprogress > .exercise > .row > .cell.input.focus {
+  border-bottom: 0.1em solid blue;
+  background-color: lightgray;
   animation: blink .5s step-end infinite alternate;
 }
 
-.exercise.wrong > .row > .cell > input:focus {
-  border-bottom: 3px solid transparent;
+.game.wrong > .exercise > .row > .cell.input.focus {
+  border-bottom: 0.1em solid blue;
+  background-color: lightgray;
   animation: blink .5s step-end infinite alternate;
-}
-
-.noselect {
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
 }
 
 ::selection {
-  background: transparent; /* WebKit/Blink Browsers */
+  background: transparent; 
 }
 ::-moz-selection {
-  background: transparent; /* Gecko Browsers */
+  background: transparent; 
 }
 
 @keyframes blink { 
-   50% { border-bottom-color: blue; } 
+   50% { border-bottom-color: transparent; } 
 }
 
-.exercise > .row > .cell.v1 {
+.cell.v1 {
   background-color: #FFFFFF;
 }
 
-.exercise > .row > .cell.v2 {
+.cell.v2 {
   background-color: #FFF7DF;
 }
 
-.exercise > .row > .cell.v3 {
+.cell.v3 {
   background-color: #FFEFBF;
 }
 
-.exercise > .row > .cell.v4 {
+.cell.v4 {
   background-color: #FFE79F;
 }
 
-.exercise > .row > .cell.v5 {
+.cell.v5 {
   background-color: #FFDF80;
 }
 
-.exercise > .row > .cell.v6 {
+.cell.v6 {
   background-color: #FFD760;
 }
 
-.exercise > .row > .cell.v7 {
+.cell.v7 {
   background-color: #FFCF40;
 }
 
-.exercise > .row > .cell.v8 {
+.cell.v8 {
   background-color: #FFC720;
 }
 
-.exercise > .row > .cell.v9 {
+.cell.v9 {
   background-color: #FFBF00;
 }

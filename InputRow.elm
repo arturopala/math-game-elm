@@ -25,8 +25,7 @@ type alias Model =
 
 
 type Action
-    = NewCharInput Int Char
-    | KeyPressed Int
+    = Noop
 
 
 
@@ -36,7 +35,7 @@ type Action
 view : Signal.Address Action -> Model -> Html
 view address model =
     div
-        [ class "row solution"
+        [ class "row input"
         ]
         (List.map
             (inputFieldView address model.cursorPosition model.showErrors model.showSolution)
@@ -51,52 +50,24 @@ view address model =
 inputFieldView : Signal.Address Action -> Int -> Bool -> Bool -> ( ( Int, Char ), Char ) -> Html
 inputFieldView address cursorPosition showErrors showSolution ( ( position, character ), solution ) =
     let
-        haveFocus =
-            if cursorPosition == position then
-                autofocus True
-            else
-                (Html.Attributes.attribute "data-nofocus" "")
-
-        inputChangeHandler =
-            on
-                "input"
-                targetValue
-                (\t ->
-                    Signal.message
-                        address
-                        (t
-                            |> String.toList
-                            |> List.head
-                            |> Maybe.withDefault '?'
-                            |> NewCharInput position
-                        )
-                )
-
-        keyPreesHandler = Html.Events.onKeyDown address (\code -> KeyPressed code)
-
         valueOrPlaceHolder char =
             if (Char.isDigit char) then
-                value (String.fromChar char)
+                (String.fromChar char)
             else
-                value ""
+                ""
+
+        content =
+            if showSolution then
+                (String.fromChar solution)
+            else
+                (valueOrPlaceHolder character)
     in
         span
-            [ class "cell solution" ]
-            [ input
-                [ type' "text"
-                , classList
-                    [ ( "noselect", True )
-                    , ( "wrong", character /= solution )
-                    ]
-                , if showSolution then
-                    (value (String.fromChar solution))
-                  else
-                    (valueOrPlaceHolder character)
-                , haveFocus
-                , maxlength 1
-                , tabindex (100 - position)
-                , inputChangeHandler
-                , keyPreesHandler
+            [ classList
+                [ ( "cell", True )
+                , ( "input", True )
+                , ( "focus", cursorPosition == position )
+                , ( "wrong", character /= solution )
                 ]
-                []
             ]
+            [ text content ]

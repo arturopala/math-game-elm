@@ -3,7 +3,6 @@ new MutationObserver(function(mutations) {
     var node = mutation.target;
     if (node instanceof Element && node.hasAttribute('autofocus')) {
       node.focus();
-      node.select();
     }
   });
 })
