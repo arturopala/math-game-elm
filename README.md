@@ -3,6 +3,9 @@
 Math game written in [Elm](http://www.elm-lang.org)
 ===================================================
 
+###[Play it here!](http://arturopala.github.io/math-game-elm/)
+
+
 ##Build
 
 `npm install -g elm onchange ws`
