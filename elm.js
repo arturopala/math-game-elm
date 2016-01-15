@@ -10986,6 +10986,7 @@ Elm.AdditionGame.make = function (_elm) {
    $Effects = Elm.Effects.make(_elm),
    $Html = Elm.Html.make(_elm),
    $Html$Attributes = Elm.Html.Attributes.make(_elm),
+   $Html$Events = Elm.Html.Events.make(_elm),
    $InputRow = Elm.InputRow.make(_elm),
    $List = Elm.List.make(_elm),
    $Matrix = Elm.Matrix.make(_elm),
@@ -11014,6 +11015,7 @@ Elm.AdditionGame.make = function (_elm) {
    var updateInput = F3(function (input,pos,$char) {    return $Char.isDigit($char) ? A3($Array.set,pos,$char,input) : A3($Array.set,pos,_U.chr(" "),input);});
    var moveCursorRight = function (model) {    return _U.update(model,{cursorPosition: A2($Basics._op["%"],model.cursorPosition + 1,model.board.width)});};
    var moveCursorLeft = function (model) {    return _U.update(model,{cursorPosition: A2($Basics._op["%"],model.cursorPosition - 1,model.board.width)});};
+   var NextRound = {ctor: "NextRound"};
    var Tick = {ctor: "Tick"};
    var ArrowRight = {ctor: "ArrowRight"};
    var ArrowLeft = {ctor: "ArrowLeft"};
@@ -11114,7 +11116,10 @@ Elm.AdditionGame.make = function (_elm) {
       _U.list([A2($Html.span,_U.list([]),_U.list([$Html.text("Round")]))
               ,A2($Html.span,_U.list([$Html$Attributes.$class("round")]),_U.list([$Html.text($Basics.toString(model.achievements.round + 1))]))
               ,A2($Html.span,_U.list([]),_U.list([$Html.text("Score")]))
-              ,A2($Html.span,_U.list([$Html$Attributes.$class("score")]),_U.list([$Html.text($Basics.toString(model.achievements.score))]))]));
+              ,A2($Html.span,_U.list([$Html$Attributes.$class("score")]),_U.list([$Html.text($Basics.toString(model.achievements.score))]))
+              ,A2($Html.span,
+              _U.list([$Html$Attributes.$class("buttons")]),
+              _U.list([A2($Html.i,_U.list([$Html$Attributes.$class("fa fa-fast-forward"),A2($Html$Events.onClick,address,NextRound)]),_U.list([]))]))]));
       var inputRow = A2(viewInputRow,address,model);
       var numberRows = A2(viewBoard,address,model);
       var exercisePanel = A2($Html.div,
@@ -11162,6 +11167,8 @@ Elm.AdditionGame.make = function (_elm) {
          case "ArrowRight": return {ctor: "_Tuple2",_0: moveCursorRight(model),_1: $Effects.none};
          case "ArrowLeft": return {ctor: "_Tuple2",_0: moveCursorLeft(model),_1: $Effects.none};
          case "Tick": return A2(updateModelWithNewClock,model,model.clock - 1);
+         case "NextRound": var achievements = model.achievements;
+           return {ctor: "_Tuple2",_0: createNextModel(_U.update(achievements,{round: model.achievements.round + 1})),_1: $Effects.none};
          default: return {ctor: "_Tuple2",_0: model,_1: $Effects.none};}
    });
    return _elm.AdditionGame.values = {_op: _op
@@ -11183,6 +11190,7 @@ Elm.AdditionGame.make = function (_elm) {
                                      ,ArrowLeft: ArrowLeft
                                      ,ArrowRight: ArrowRight
                                      ,Tick: Tick
+                                     ,NextRound: NextRound
                                      ,arrowAsAction: arrowAsAction
                                      ,update: update
                                      ,updateModelWithNewInput: updateModelWithNewInput

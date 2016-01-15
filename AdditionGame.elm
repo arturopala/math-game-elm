@@ -113,6 +113,7 @@ type Action
     | ArrowLeft
     | ArrowRight
     | Tick
+    | NextRound
 
 
 arrowAsAction : { x : Int, y : Int } -> Action
@@ -149,6 +150,17 @@ update message model =
 
         Tick ->
             updateModelWithNewClock model (model.clock - 1)
+
+        NextRound ->
+            let
+                achievements = model.achievements
+            in
+                ( createNextModel
+                    { achievements
+                        | round = model.achievements.round + 1
+                    }
+                , Effects.none
+                )
 
         _ ->
             ( model, Effects.none )
@@ -315,6 +327,14 @@ view address model =
                 , span
                     [ class "score" ]
                     [ text (toString model.achievements.score) ]
+                , span
+                    [ class "buttons" ]
+                    [ i
+                        [ class "fa fa-fast-forward"
+                        , onClick address NextRound
+                        ]
+                        []
+                    ]
                 ]
 
         statePanel =
