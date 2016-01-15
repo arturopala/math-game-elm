@@ -17,3 +17,7 @@ onchange '*.elm' -v -- elm-make Main.elm --output elm.js
 ```
 
 Run `ws` to see game in browser.
+
+##Deploy
+
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
