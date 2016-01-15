@@ -12,10 +12,18 @@ import Char
 import Debug
 
 
+-- CONFIG
+
+
+timefactor =
+    2
+
+
+
 -- MODEL
 
 
-type ExerciseState
+type GameState
     = InProgress
     | Solved Int
     | Failed Int
@@ -42,7 +50,7 @@ type alias Model =
     , width : Int
     , input : Array Char
     , cursorPosition : Int
-    , state : ExerciseState
+    , state : GameState
     , clock : Int
     , achievements : Achievements
     }
@@ -50,21 +58,21 @@ type alias Model =
 
 init : ( Model, Effects Action )
 init =
-    ( createNext (Achievements 0 0), Effects.none )
+    ( createNextModel (Achievements 0 0), Effects.none )
 
 
-createNext : Achievements -> Model
-createNext achievements =
+createNextModel : Achievements -> Model
+createNextModel achievements =
     let
         numbers =
             changeN achievements.round seed
                 |> List.map join
     in
-        create numbers achievements
+        createModel numbers achievements
 
 
-create : List Int -> Achievements -> Model
-create numbers achievements =
+createModel : List Int -> Achievements -> Model
+createModel numbers achievements =
     let
         solution = String.toList (toString (List.sum numbers))
 
@@ -72,7 +80,17 @@ create numbers achievements =
 
         input = Array.repeat width ' '
 
-        seconds = 2 * ((List.length numbers) + (numbers |> List.map (toString >> String.length) |> List.sum))
+        seconds =
+            ceiling
+                (timefactor
+                    * ((List.length numbers)
+                        + (numbers
+                            |> List.map (toString >> String.length)
+                            |> List.sum
+                          )
+                        |> toFloat
+                      )
+                )
     in
         Model numbers solution width input (width - 1) InProgress seconds achievements
 
@@ -239,10 +257,10 @@ update message model =
 
                 newmodel =
                     if (newclock < -10) then
-                        createNext
+                        createNextModel
                             { achievements
                                 | round = achievements.round + 1
-                                , points = (achievements.points + (earnedPoints model.state))
+                                , points = (model.achievements.points + (earnedPoints model.state))
                             }
                     else
                         { model
@@ -266,7 +284,7 @@ updateInput input pos char =
         Array.set pos ' ' input
 
 
-updateState : ExerciseState -> Row -> Row -> Int -> ExerciseState
+updateState : GameState -> Row -> Row -> Int -> GameState
 updateState state solution input clock =
     case state of
         Solved points ->
@@ -286,7 +304,7 @@ updateState state solution input clock =
                 InProgress
 
 
-earnedPoints : ExerciseState -> Int
+earnedPoints : GameState -> Int
 earnedPoints state =
     case state of
         Solved points ->
@@ -318,7 +336,13 @@ view address model =
             [ class "game" ]
             [ div
                 [ class "achievements" ]
-                [ text ("Round " ++ (toString (model.achievements.round + 1)) ++ " | Points " ++ (toString model.achievements.round)) ]
+                [ text
+                    ("Round "
+                        ++ (toString (model.achievements.round + 1))
+                        ++ " | Points "
+                        ++ (toString model.achievements.points)
+                    )
+                ]
             , div
                 [ classList
                     [ ( "state", True )
@@ -340,10 +364,15 @@ gameStateInfo : Model -> Html
 gameStateInfo model =
     case model.state of
         Solved points ->
-            text ("Solved for " ++ (toString time) ++ " points!")
+            text
+                ("Solved for "
+                    ++ (toString points)
+                    ++ " points!"
+                )
 
         Timeout ->
-            text "The time is over, try again ..."
+            text
+                ("Time is over, try again!")
 
         InProgress ->
             text
@@ -351,7 +380,7 @@ gameStateInfo model =
                     |> toString
                     |> (String.padLeft 2 '0')
                  )
-                    ++ " secs. left ..."
+                    ++ " secs left ..."
                 )
 
         Failed errors ->
@@ -360,13 +389,13 @@ gameStateInfo model =
                     |> toString
                     |> (String.padLeft 2 '0')
                  )
-                    ++ " secs. left, correct "
+                    ++ " secs left, correct "
                     ++ (toString errors)
                     ++ " errors"
                 )
 
 
-classForState : ExerciseState -> String
+classForState : GameState -> String
 classForState state =
     case state of
         InProgress ->

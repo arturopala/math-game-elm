@@ -43,12 +43,10 @@ html {
 
 .game > .state.solved {
   color: green;
-  text-align: center;
 }
 
 .game > .state.timeout {
   color: gray;
-  text-align: center;
 }
 
 .game > .state.wrong {
