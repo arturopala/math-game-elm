@@ -8,7 +8,7 @@ html {
     height: 100%;
     width: 100%;
     font-family: 'VAGLight';
-    font-size: 30pt;
+    font-size: 28pt;
 }
 
 .main {
@@ -23,25 +23,28 @@ html {
   transform: translate(-50%,-50%);
 }
 
+.game {
+  padding: 0.3rem;
+}
+
 .game > .achievements {
-  font-size: 0.8rem;
-  color: #ff7200;
+  font-size: 0.7rem;
+  color: lightgray;
   vertical-align: middle;
-  padding: 0.5rem 1rem 0 1rem;
+  padding: 0.5em 0 0 0;
 }
 
 .game > .achievements .round {
   display: inline-block;
-  color: black;
-  padding: 0 0.5rem;
+  color: #ff7200;;
+  padding: 0 0.5em;
   font-family: 'VAGBold';
-  width: 1.5em;
 }
 
 .game > .achievements .score {
   display: inline-block;
-  color: black;
-  padding: 0 0.5rem;
+  color: #ff7200;;
+  padding: 0 0.5em;
   font-family: 'VAGBold';
   width: 2em;
 }
@@ -49,13 +52,14 @@ html {
 .game > .achievements .buttons {
   display: inline-block;
   float: right;
+  cursor: pointer;
 }
 
 .game > .state {
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   color: white;
   vertical-align: bottom;
-  padding: 0.5rem 1rem 0.2rem 1rem;
+  padding: 0.5em 0 0.2em 0;
 }
 
 .game > .state .clock {
@@ -72,21 +76,12 @@ html {
   font-family: 'VAGBold';
 }
 
-.game .button {
-  display: inline-block;
-  background-color: lightgray;
-  color: white;
-  font-size: 0.6em; 
-  padding: 0.2em;
-  border-radius: 0.3em
-}
-
 .game.inprogress > .state {
-  color: darkgray;
+  color: lightgray;
 }
 
 .game.solved > .state {
-  color: green;
+  color: #ff7200;
 }
 
 .game.timeout > .state {
@@ -94,47 +89,52 @@ html {
 }
 
 .game.wrong > .state {
-  color: red;
+  color: #ff7200;
 }
 
-.game > .exercise {
-	padding: 1rem;
-	font-size: 1.5rem;
+.game > .board {
+  min-width: 13.5rem;
+  min-height: 13.5rem;
+  padding: 0.5rem;
+  box-sizing: border-box;
+  text-align: right;
 }
 
-.game > .exercise > .mark {
+.game > .board > .mark {
   position: absolute;
-  bottom: 2.5em;
-  left: 1em;
+  bottom: 3rem;
+  left: 1.3rem;
   color: black;
 }
 
-.game.solved > .exercise {
-  border:5pt solid green;
+.game.inprogress > .board {
+  border: 1pt dotted lightgray; 
 }
 
-.game.wrong > .exercise {
-  border:5pt dotted red;
+.game.solved > .board {
+  background-color: #21ff00; 
 }
 
-.game.timeout > .exercise {
-  border:5pt solid gray;
-  pointer-events: none;
-  color: gray!important;
+.game.wrong > .board {
+  background-color: yellow;
 }
 
-.game > .exercise > .row {
+.game.timeout > .board {
+  background-color: lightgray;
+}
+
+.game > .board > .row {
   white-space:nowrap;
   text-align: right;
 }
 
-.game > .exercise > .row.input {
+.game > .board > .row.input {
   border-top: 0.1em solid #ff7200;
 }
 
-.game > .exercise > .row > .cell {
-	width: 1.4em;
-  height: 1.4em;
+.game > .board > .row > .cell {
+	width: 1.5em;
+  height: 1.5em;
   display: inline-block;
   text-align: center;
   vertical-align: bottom;
@@ -142,38 +142,51 @@ html {
   box-sizing: border-box;
 }
 
-.game > .exercise > .row > .cell.input {
+.game > .board > .row > .cell.input {
   border-bottom: 3px solid transparent;
 }
 
-.game.inprogress > .exercise > .row > .cell.input {
+.game.inprogress > .board > .row > .cell.input {
   color: blue;
 }
 
-.game.solved > .exercise > .row > .cell.input {
-  color: green;
+.game.solved > .board > .row.input {
+  border-top-color: green;
 }
 
-.game.wrong > .exercise > .row > .cell.input {
+.game.solved > .board > .row > .cell.input {
+  color: black;
+}
+
+.game.wrong > .board > .row.input {
+  border-top-color: red;
+}
+
+.game.wrong > .board > .row > .cell.input {
   color: blue;
 }
 
-.game.timeout > .exercise > .row.input > .cell.input {
-  color: green;
+.game.timeout > .board > .row.input {
+  border-top-color: black;
 }
 
-.game.timeout > .exercise > .row > .cell.input.wrong {
+.game.timeout > .board > .row.input > .cell.input {
+  background-color: green;
+  color: white;
+}
+
+.game.timeout > .board > .row > .cell.input.wrong {
   background-color: red;
   color: white;
 }
 
-.game.inprogress > .exercise > .row > .cell.input.focus {
+.game.inprogress > .board > .row > .cell.input.focus {
   border-bottom: 0.1em solid blue;
   background-color: lightgray;
   animation: blink .5s step-end infinite alternate;
 }
 
-.game.wrong > .exercise > .row > .cell.input.focus {
+.game.wrong > .board > .row > .cell.input.focus {
   border-bottom: 0.1em solid blue;
   background-color: lightgray;
   animation: blink .5s step-end infinite alternate;

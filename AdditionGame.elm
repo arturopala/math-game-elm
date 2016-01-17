@@ -2,7 +2,7 @@ module AdditionGame (..) where
 
 import Effects exposing (Effects, map, batch, Never)
 import Html exposing (..)
-import Html.Attributes exposing (class, classList)
+import Html.Attributes exposing (class, classList, style)
 import Html.Events exposing (..)
 import String exposing (length)
 import Array exposing (Array)
@@ -16,8 +16,20 @@ import Debug
 -- CONFIG
 
 
+levelLength =
+    5
+
+
+minLevel =
+    3
+
+
+maxLevel =
+    9
+
+
 timefactor =
-    2
+    1
 
 
 waitPeriod =
@@ -56,13 +68,8 @@ type alias Model =
     , state : GameState
     , clock : Int
     , achievements : Achievements
+    , level : Int
     }
-
-
-seed : Matrix
-seed =
-    [ 12345, 23456, 34567, 45678, 56789 ]
-        |> List.map Matrix.split
 
 
 init : ( Model, Effects Action )
@@ -73,14 +80,32 @@ init =
 createNextModel : Achievements -> Model
 createNextModel achievements =
     let
+        n = rem achievements.round levelLength
+
+        level = min (foundLevel achievements.round minLevel) maxLevel
+
         numbers =
-            Matrix.transformN achievements.round seed
+            Matrix.transformN n (Matrix.seed level)
     in
-        createModel numbers achievements
+        createModel level numbers achievements
 
 
-createModel : Matrix -> Achievements -> Model
-createModel numbers achievements =
+foundLevel : Int -> Int -> Int
+foundLevel round level =
+    let
+        limit =
+            [1..(level - minLevel + 2)]
+                |> List.map (\n -> n * n)
+                |> List.sum
+    in
+        if (round < limit) then
+            level
+        else
+            foundLevel round (level + 1)
+
+
+createModel : Int -> Matrix -> Achievements -> Model
+createModel level numbers achievements =
     let
         solution =
             numbers
@@ -100,7 +125,7 @@ createModel numbers achievements =
 
         seconds = ceiling (timefactor * (toFloat (height * width)))
     in
-        Model board input (width - 1) InProgress seconds achievements
+        Model board input (width - 1) InProgress seconds achievements level
 
 
 
@@ -261,11 +286,13 @@ updateState model input clock =
         _ ->
             let
                 correctInputs = model.board.width - (countErrors model.board.solution input)
+
+                points = (clock + correctInputs + (model.board.width * model.board.height))
             in
                 if (clock == 0) then
                     ( Timeout, correctInputs )
                 else if (input == model.board.solution) then
-                    ( Solved (clock + correctInputs), (clock + correctInputs) )
+                    ( Solved points, points )
                 else if (List.all Char.isDigit input) then
                     ( Failed (countErrors model.board.solution input), 0 )
                 else
@@ -344,10 +371,13 @@ view address model =
 
         exercisePanel =
             div
-                [ class "exercise" ]
+                [ class "board"
+                , style
+                    [ ( "font-size", "1rem" ) ]
+                ]
                 (numberRows
-                    ++ [ inputRow
-                       , div [ class "mark" ] [ text "+" ]
+                    ++ [ div [ class "mark" ] [ text "+" ]
+                       , inputRow
                        ]
                 )
     in
@@ -367,28 +397,44 @@ gameStateInfo : Model -> Html
 gameStateInfo model =
     case model.state of
         Solved score ->
-            span
-                []
-                [ text "Solved! "
-                , span
-                    [ class "score" ]
-                    [ text ("+" ++ (toString score)) ]
-                , text " points! Next for "
-                , span
-                    [ class "clock" ]
-                    [ text (toString (waitPeriod + model.clock)) ]
-                , text " secs"
-                ]
+            let
+                clock = (waitPeriod + model.clock)
+            in
+                span
+                    []
+                    [ text "You got "
+                    , span
+                        [ class "score" ]
+                        [ text ("+" ++ (toString score)) ]
+                    , text " points !!! Next play for "
+                    , span
+                        [ class "clock" ]
+                        [ text (toString clock) ]
+                    , text
+                        (if clock > 1 then
+                            " secs"
+                         else
+                            " sec"
+                        )
+                    ]
 
         Timeout ->
-            span
-                []
-                [ text "Time is over, try next for "
-                , span
-                    [ class "clock" ]
-                    [ text (toString (waitPeriod + model.clock)) ]
-                , text " secs"
-                ]
+            let
+                clock = (waitPeriod + model.clock)
+            in
+                span
+                    []
+                    [ text "Time is over, try next for "
+                    , span
+                        [ class "clock" ]
+                        [ text (toString clock) ]
+                    , text
+                        (if clock > 1 then
+                            " secs"
+                         else
+                            " sec"
+                        )
+                    ]
 
         InProgress ->
             span
@@ -398,12 +444,18 @@ gameStateInfo model =
                     [ text
                         (model.clock
                             |> toString
-                            |> (String.padLeft 2 '0')
+                            |> (String.padLeft 3 '0')
                         )
                     ]
                 , span
                     []
-                    [ text " secs left ..." ]
+                    [ text
+                        (if model.clock > 1 then
+                            " secs left ..."
+                         else
+                            " sec ..."
+                        )
+                    ]
                 ]
 
         Failed errors ->
@@ -414,7 +466,7 @@ gameStateInfo model =
                     [ text
                         (model.clock
                             |> toString
-                            |> (String.padLeft 2 '0')
+                            |> (String.padLeft 3 '0')
                         )
                     ]
                 , span
@@ -447,7 +499,12 @@ classForState state =
 
 viewBoard : Signal.Address Action -> Model -> List Html
 viewBoard address model =
-    List.map CharRow.view model.board.numbers
+    let
+        emptyCount = maxLevel - model.board.height
+
+        emptyRows = List.repeat emptyCount [ ' ' ]
+    in
+        List.map CharRow.view (emptyRows ++ model.board.numbers)
 
 
 viewInputRow : Signal.Address Action -> Model -> Html

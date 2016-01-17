@@ -10852,60 +10852,96 @@ Elm.Matrix.make = function (_elm) {
    $Signal = Elm.Signal.make(_elm),
    $String = Elm.String.make(_elm);
    var _op = {};
-   var right = F2(function (a,b) {    return A2($List._op["::"],A2($Maybe.withDefault,_U.chr("0"),$List.head(b)),A2($List.take,$List.length(a) - 1,a));});
-   var left = F2(function (a,b) {
-      return A2($Basics._op["++"],A2($List.drop,1,a),_U.list([A2($Maybe.withDefault,_U.chr("0"),$List.head($List.reverse(b)))]));
-   });
-   var pull = F2(function (a,b) {    return A2($Basics._op["++"],A2($List.drop,1,a),_U.list([A2($Maybe.withDefault,_U.chr("0"),$List.head(b))]));});
-   var join = function (list) {    return function (_p0) {    return A2($Result.withDefault,0,$String.toInt($String.fromList(_p0)));}(list);};
-   var split = function (n) {    return function (_p1) {    return $String.toList($Basics.toString(_p1));}(n);};
-   var apply = F2(function (f,l) {    return f(l);});
-   var translate = function (m) {
-      var _p2 = m;
-      if (_p2.ctor === "::" && _p2._1.ctor === "::" && _p2._1._1.ctor === "::" && _p2._1._1._1.ctor === "::" && _p2._1._1._1._1.ctor === "::" && _p2._1._1._1._1._1.ctor === "[]")
-      {
-            var _p7 = _p2._1._1._1._1._0;
-            var _p6 = _p2._1._1._1._0;
-            var _p5 = _p2._1._1._0;
-            var _p4 = _p2._1._0;
-            var _p3 = _p2._0;
-            return _U.list([A2(pull,_p3,_p7),A2(right,_p4,_p3),A2(left,_p5,_p4),A2(right,_p6,_p5),A2(left,_p7,_p6)]);
-         } else {
-            return m;
-         }
+   var pairs = function (m) {
+      var size = $List.length(m);
+      var last = A2($List.drop,size - 1,m);
+      var init = A2($List.take,size - 1,m);
+      var snd = A2($Basics._op["++"],last,init);
+      return A3($List.map2,F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}),m,snd);
    };
+   var execute = function (_p0) {    var _p1 = _p0;return A2(_p1._0,_p1._1._0,_p1._1._1);};
+   var isEven = function (i) {    return _U.eq(A2($Basics.rem,i,2),0);};
    var mirror = function (m) {
-      var _p8 = m;
-      if (_p8.ctor === "::" && _p8._1.ctor === "::" && _p8._1._1.ctor === "::" && _p8._1._1._1.ctor === "::" && _p8._1._1._1._1.ctor === "::" && _p8._1._1._1._1._1.ctor === "[]")
-      {
-            return _U.list([$List.reverse(_p8._0),_p8._1._0,$List.reverse(_p8._1._1._0),_p8._1._1._1._0,$List.reverse(_p8._1._1._1._1._0)]);
-         } else {
-            return m;
-         }
+      return A2($List.map,
+      function (_p2) {
+         var _p3 = _p2;
+         var _p4 = _p3._1;
+         return isEven(_p3._0) ? _p4 : $List.reverse(_p4);
+      },
+      A2($List.indexedMap,F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}),m));
    };
    var rotate = function (m) {
-      var _p9 = m;
-      if (_p9.ctor === "::" && _p9._1.ctor === "::" && _p9._1._1.ctor === "::" && _p9._1._1._1.ctor === "::" && _p9._1._1._1._1.ctor === "::" && _p9._1._1._1._1._1.ctor === "[]")
-      {
-            return _U.list([_p9._1._1._1._1._0,$List.reverse(_p9._0),_p9._1._0,$List.reverse(_p9._1._1._0),_p9._1._1._1._0]);
-         } else {
-            return m;
-         }
+      var size = $List.length(m);
+      var last = A2($List.drop,size - 1,m);
+      var init = A2($List.take,size - 1,m);
+      var rotated = A2($Basics._op["++"],last,init);
+      return mirror(rotated);
    };
+   var right = F2(function (b,a) {    return A2($Basics._op["++"],A2($List.take,1,a),A2($List.take,$List.length(b) - 1,b));});
+   var left = F2(function (a,b) {    return A2($Basics._op["++"],A2($List.drop,1,a),A2($List.take,1,$List.reverse(b)));});
+   var pull = F2(function (a,b) {    return A2($Basics._op["++"],A2($List.drop,1,a),A2($List.take,1,b));});
+   var translate = function (m) {
+      var rowPairs = pairs(m);
+      var length = $List.length(m);
+      var turns = A2($List.intersperse,left,A2($List.repeat,length,right));
+      var actions = A2($List.take,length,isEven(length) ? turns : A2($List._op["::"],pull,turns));
+      var tasks = A3($List.map2,F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}),actions,rowPairs);
+      return A2($List.map,execute,tasks);
+   };
+   var join = function (list) {    return function (_p5) {    return A2($Result.withDefault,0,$String.toInt($String.fromList(_p5)));}(list);};
+   var split = function (n) {    return function (_p6) {    return $String.toList($Basics.toString(_p6));}(n);};
+   var apply = F2(function (f,l) {    return f(l);});
    var transformN = F2(function (n,m) {
       return A3($List.foldl,apply,m,A2($List.take,n,A2($List.intersperse,translate,A2($List.intersperse,rotate,A2($List.repeat,n,mirror)))));
    });
+   var base = _U.list([_U.chr("1")
+                      ,_U.chr("2")
+                      ,_U.chr("3")
+                      ,_U.chr("4")
+                      ,_U.chr("5")
+                      ,_U.chr("6")
+                      ,_U.chr("7")
+                      ,_U.chr("8")
+                      ,_U.chr("9")
+                      ,_U.chr("8")
+                      ,_U.chr("7")
+                      ,_U.chr("6")
+                      ,_U.chr("5")
+                      ,_U.chr("4")
+                      ,_U.chr("3")
+                      ,_U.chr("2")
+                      ,_U.chr("1")
+                      ,_U.chr("2")
+                      ,_U.chr("3")
+                      ,_U.chr("4")
+                      ,_U.chr("5")
+                      ,_U.chr("6")
+                      ,_U.chr("7")
+                      ,_U.chr("8")
+                      ,_U.chr("9")]);
+   var nthSeedRow = F2(function (size,n) {
+      var step = $Basics.floor(9.0 / $Basics.toFloat(size));
+      var offset = (n - 1) * step;
+      return A2($List.take,size,A2($List.drop,offset,base));
+   });
+   var seed = function (size) {    return A2($List.map,nthSeedRow(size),_U.range(1,size));};
    return _elm.Matrix.values = {_op: _op
-                               ,rotate: rotate
-                               ,mirror: mirror
-                               ,translate: translate
+                               ,base: base
+                               ,seed: seed
+                               ,nthSeedRow: nthSeedRow
                                ,transformN: transformN
                                ,apply: apply
                                ,split: split
                                ,join: join
                                ,pull: pull
                                ,left: left
-                               ,right: right};
+                               ,right: right
+                               ,isEven: isEven
+                               ,rotate: rotate
+                               ,mirror: mirror
+                               ,translate: translate
+                               ,execute: execute
+                               ,pairs: pairs};
 };
 Elm.CharRow = Elm.CharRow || {};
 Elm.CharRow.make = function (_elm) {
@@ -10995,7 +11031,6 @@ Elm.AdditionGame.make = function (_elm) {
    $Signal = Elm.Signal.make(_elm),
    $String = Elm.String.make(_elm);
    var _op = {};
-   var viewBoard = F2(function (address,model) {    return A2($List.map,$CharRow.view,model.board.numbers);});
    var classForState = function (state) {
       var _p0 = state;
       switch (_p0.ctor)
@@ -11023,8 +11058,7 @@ Elm.AdditionGame.make = function (_elm) {
    var Noop = {ctor: "Noop"};
    var arrowAsAction = function (_p3) {    var _p4 = _p3;var _p5 = _p4.x;return _U.eq(_p5,1) ? ArrowRight : _U.eq(_p5,-1) ? ArrowLeft : Noop;};
    var inputRowAction = function (a) {    var _p6 = a;return Noop;};
-   var seed = A2($List.map,$Matrix.split,_U.list([12345,23456,34567,45678,56789]));
-   var Model = F6(function (a,b,c,d,e,f) {    return {board: a,input: b,cursorPosition: c,state: d,clock: e,achievements: f};});
+   var Model = F7(function (a,b,c,d,e,f,g) {    return {board: a,input: b,cursorPosition: c,state: d,clock: e,achievements: f,level: g};});
    var Board = F4(function (a,b,c,d) {    return {numbers: a,solution: b,width: c,height: d};});
    var Achievements = F2(function (a,b) {    return {round: a,score: b};});
    var Timeout = {ctor: "Timeout"};
@@ -11042,9 +11076,10 @@ Elm.AdditionGame.make = function (_elm) {
       {case "Solved": return {ctor: "_Tuple2",_0: Solved(_p7._0),_1: 0};
          case "Timeout": return {ctor: "_Tuple2",_0: Timeout,_1: 0};
          default: var correctInputs = model.board.width - A2(countErrors,model.board.solution,input);
+           var points = clock + correctInputs + model.board.width * model.board.height;
            return _U.eq(clock,0) ? {ctor: "_Tuple2",_0: Timeout,_1: correctInputs} : _U.eq(input,model.board.solution) ? {ctor: "_Tuple2"
-                                                                                                                         ,_0: Solved(clock + correctInputs)
-                                                                                                                         ,_1: clock + correctInputs} : A2($List.all,
+                                                                                                                         ,_0: Solved(points)
+                                                                                                                         ,_1: points} : A2($List.all,
            $Char.isDigit,
            input) ? {ctor: "_Tuple2",_0: Failed(A2(countErrors,model.board.solution,input)),_1: 0} : {ctor: "_Tuple2",_0: InProgress,_1: 0};}
    });
@@ -11082,33 +11117,52 @@ Elm.AdditionGame.make = function (_elm) {
    var gameStateInfo = function (model) {
       var _p11 = model.state;
       switch (_p11.ctor)
-      {case "Solved": return A2($Html.span,
+      {case "Solved": var clock = waitPeriod + model.clock;
+           return A2($Html.span,
            _U.list([]),
-           _U.list([$Html.text("Solved! ")
+           _U.list([$Html.text("You got ")
                    ,A2($Html.span,_U.list([$Html$Attributes.$class("score")]),_U.list([$Html.text(A2($Basics._op["++"],"+",$Basics.toString(_p11._0)))]))
-                   ,$Html.text(" points! Next for ")
-                   ,A2($Html.span,_U.list([$Html$Attributes.$class("clock")]),_U.list([$Html.text($Basics.toString(waitPeriod + model.clock))]))
-                   ,$Html.text(" secs")]));
-         case "Timeout": return A2($Html.span,
+                   ,$Html.text(" points !!! Next play for ")
+                   ,A2($Html.span,_U.list([$Html$Attributes.$class("clock")]),_U.list([$Html.text($Basics.toString(clock))]))
+                   ,$Html.text(_U.cmp(clock,1) > 0 ? " secs" : " sec")]));
+         case "Timeout": var clock = waitPeriod + model.clock;
+           return A2($Html.span,
            _U.list([]),
            _U.list([$Html.text("Time is over, try next for ")
-                   ,A2($Html.span,_U.list([$Html$Attributes.$class("clock")]),_U.list([$Html.text($Basics.toString(waitPeriod + model.clock))]))
-                   ,$Html.text(" secs")]));
+                   ,A2($Html.span,_U.list([$Html$Attributes.$class("clock")]),_U.list([$Html.text($Basics.toString(clock))]))
+                   ,$Html.text(_U.cmp(clock,1) > 0 ? " secs" : " sec")]));
          case "InProgress": return A2($Html.span,
            _U.list([]),
            _U.list([A2($Html.span,
                    _U.list([$Html$Attributes.$class("clock")]),
-                   _U.list([$Html.text(A3($String.padLeft,2,_U.chr("0"),$Basics.toString(model.clock)))]))
-                   ,A2($Html.span,_U.list([]),_U.list([$Html.text(" secs left ...")]))]));
+                   _U.list([$Html.text(A3($String.padLeft,3,_U.chr("0"),$Basics.toString(model.clock)))]))
+                   ,A2($Html.span,_U.list([]),_U.list([$Html.text(_U.cmp(model.clock,1) > 0 ? " secs left ..." : " sec ...")]))]));
          default: return A2($Html.span,
            _U.list([]),
            _U.list([A2($Html.span,
                    _U.list([$Html$Attributes.$class("clock")]),
-                   _U.list([$Html.text(A3($String.padLeft,2,_U.chr("0"),$Basics.toString(model.clock)))]))
+                   _U.list([$Html.text(A3($String.padLeft,3,_U.chr("0"),$Basics.toString(model.clock)))]))
                    ,A2($Html.span,_U.list([]),_U.list([$Html.text(" secs left, correct ")]))
                    ,A2($Html.span,_U.list([$Html$Attributes.$class("errors")]),_U.list([$Html.text($Basics.toString(_p11._0))]))
                    ,A2($Html.span,_U.list([]),_U.list([$Html.text(" errors!")]))]));}
    };
+   var timefactor = 1;
+   var createModel = F3(function (level,numbers,achievements) {
+      var height = $List.length(numbers);
+      var solution = $Matrix.split($List.sum(A2($List.map,$Matrix.join,numbers)));
+      var _p12 = A2($Debug.log,"",$Matrix.join(solution));
+      var width = $List.length(solution);
+      var input = A2($Array.repeat,width,_U.chr(" "));
+      var seconds = $Basics.ceiling(timefactor * $Basics.toFloat(height * width));
+      var board = A4(Board,numbers,solution,width,height);
+      return A7(Model,board,input,width - 1,InProgress,seconds,achievements,level);
+   });
+   var maxLevel = 9;
+   var viewBoard = F2(function (address,model) {
+      var emptyCount = maxLevel - model.board.height;
+      var emptyRows = A2($List.repeat,emptyCount,_U.list([_U.chr(" ")]));
+      return A2($List.map,$CharRow.view,A2($Basics._op["++"],emptyRows,model.board.numbers));
+   });
    var view = F2(function (address,model) {
       var statePanel = A2($Html.div,_U.list([$Html$Attributes.$class("state")]),_U.list([gameStateInfo(model)]));
       var achievementsPanel = A2($Html.div,
@@ -11123,26 +11177,30 @@ Elm.AdditionGame.make = function (_elm) {
       var inputRow = A2(viewInputRow,address,model);
       var numberRows = A2(viewBoard,address,model);
       var exercisePanel = A2($Html.div,
-      _U.list([$Html$Attributes.$class("exercise")]),
-      A2($Basics._op["++"],numberRows,_U.list([inputRow,A2($Html.div,_U.list([$Html$Attributes.$class("mark")]),_U.list([$Html.text("+")]))])));
+      _U.list([$Html$Attributes.$class("board"),$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "font-size",_1: "1rem"}]))]),
+      A2($Basics._op["++"],numberRows,_U.list([A2($Html.div,_U.list([$Html$Attributes.$class("mark")]),_U.list([$Html.text("+")])),inputRow])));
       return A2($Html.div,
       _U.list([$Html$Attributes.classList(_U.list([{ctor: "_Tuple2",_0: "game",_1: true},{ctor: "_Tuple2",_0: classForState(model.state),_1: true}]))]),
       _U.list([achievementsPanel,statePanel,exercisePanel]));
    });
-   var timefactor = 2;
-   var createModel = F2(function (numbers,achievements) {
-      var height = $List.length(numbers);
-      var solution = $Matrix.split($List.sum(A2($List.map,$Matrix.join,numbers)));
-      var _p12 = A2($Debug.log,"",$Matrix.join(solution));
-      var width = $List.length(solution);
-      var input = A2($Array.repeat,width,_U.chr(" "));
-      var seconds = $Basics.ceiling(timefactor * $Basics.toFloat(height * width));
-      var board = A4(Board,numbers,solution,width,height);
-      return A6(Model,board,input,width - 1,InProgress,seconds,achievements);
+   var minLevel = 3;
+   var foundLevel = F2(function (round,level) {
+      foundLevel: while (true) {
+         var limit = $List.sum(A2($List.map,function (n) {    return n * n;},_U.range(1,level - minLevel + 2)));
+         if (_U.cmp(round,limit) < 0) return level; else {
+               var _v8 = round,_v9 = level + 1;
+               round = _v8;
+               level = _v9;
+               continue foundLevel;
+            }
+      }
    });
+   var levelLength = 5;
    var createNextModel = function (achievements) {
-      var numbers = A2($Matrix.transformN,achievements.round,seed);
-      return A2(createModel,numbers,achievements);
+      var level = A2($Basics.min,A2(foundLevel,achievements.round,minLevel),maxLevel);
+      var n = A2($Basics.rem,achievements.round,levelLength);
+      var numbers = A2($Matrix.transformN,n,$Matrix.seed(level));
+      return A3(createModel,level,numbers,achievements);
    };
    var init = {ctor: "_Tuple2",_0: createNextModel(A2(Achievements,0,0)),_1: $Effects.none};
    var updateModelWithNewClock = F2(function (model,clock) {
@@ -11172,6 +11230,9 @@ Elm.AdditionGame.make = function (_elm) {
          default: return {ctor: "_Tuple2",_0: model,_1: $Effects.none};}
    });
    return _elm.AdditionGame.values = {_op: _op
+                                     ,levelLength: levelLength
+                                     ,minLevel: minLevel
+                                     ,maxLevel: maxLevel
                                      ,timefactor: timefactor
                                      ,waitPeriod: waitPeriod
                                      ,InProgress: InProgress
@@ -11181,9 +11242,9 @@ Elm.AdditionGame.make = function (_elm) {
                                      ,Achievements: Achievements
                                      ,Board: Board
                                      ,Model: Model
-                                     ,seed: seed
                                      ,init: init
                                      ,createNextModel: createNextModel
+                                     ,foundLevel: foundLevel
                                      ,createModel: createModel
                                      ,Noop: Noop
                                      ,KeyPressed: KeyPressed
