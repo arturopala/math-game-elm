@@ -11153,7 +11153,7 @@ Elm.AdditionGame.make = function (_elm) {
       var _p12 = A2($Debug.log,"",$Matrix.join(solution));
       var width = $List.length(solution);
       var input = A2($Array.repeat,width,_U.chr(" "));
-      var seconds = $Basics.ceiling(timefactor * $Basics.toFloat(height * width));
+      var seconds = height + $Basics.ceiling(timefactor * $Basics.toFloat(height * width));
       var board = A4(Board,numbers,solution,width,height);
       return A7(Model,board,input,width - 1,InProgress,seconds,achievements,level);
    });

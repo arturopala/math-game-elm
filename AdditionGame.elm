@@ -123,7 +123,7 @@ createModel level numbers achievements =
 
         input = Array.repeat width ' '
 
-        seconds = ceiling (timefactor * (toFloat (height * width)))
+        seconds = height + (ceiling (timefactor * (toFloat (height * width))))
     in
         Model board input (width - 1) InProgress seconds achievements level
 
