@@ -10860,23 +10860,38 @@ Elm.Matrix.make = function (_elm) {
       return A3($List.map2,F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}),m,snd);
    };
    var execute = function (_p0) {    var _p1 = _p0;return A2(_p1._0,_p1._1._0,_p1._1._1);};
-   var isEven = function (i) {    return _U.eq(A2($Basics.rem,i,2),0);};
-   var mirror = function (m) {
-      return A2($List.map,
-      function (_p2) {
-         var _p3 = _p2;
-         var _p4 = _p3._1;
-         return isEven(_p3._0) ? _p4 : $List.reverse(_p4);
-      },
-      A2($List.indexedMap,F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}),m));
-   };
+   var mirror = function (m) {    return A2($List.map,$List.reverse,m);};
+   var headtail = function (row) {    var tail = A2($List.drop,1,row);var head = A2($List.take,1,row);return {ctor: "_Tuple2",_0: head,_1: tail};};
+   var foldBack = F2(function (_p3,_p2) {
+      var _p4 = _p3;
+      var _p5 = _p2;
+      var _p7 = _p5._1;
+      return {ctor: "_Tuple2"
+             ,_0: A2($Basics._op["++"],_p5._0,_p4._0)
+             ,_1: function () {
+                var _p6 = _p4._1;
+                if (_p6.ctor === "[]") {
+                      return _p7;
+                   } else {
+                      return A2($Basics._op["++"],_p7,_U.list([_p6]));
+                   }
+             }()};
+   });
+   var splitLeftColumn = function (m) {    return A3($List.foldl,foldBack,{ctor: "_Tuple2",_0: _U.list([]),_1: _U.list([])},A2($List.map,headtail,m));};
    var rotate = function (m) {
-      var size = $List.length(m);
-      var last = A2($List.drop,size - 1,m);
-      var init = A2($List.take,size - 1,m);
-      var rotated = A2($Basics._op["++"],last,init);
-      return mirror(rotated);
+      var _p8 = splitLeftColumn(m);
+      var leftColumn = _p8._0;
+      var rightMatrix = _p8._1;
+      var column = $List.reverse(leftColumn);
+      var _p9 = rightMatrix;
+      if (_p9.ctor === "[]") {
+            return A2($List._op["::"],column,_U.list([]));
+         } else {
+            return A2($List._op["::"],column,rotate(rightMatrix));
+         }
    };
+   var identity = function (m) {    return m;};
+   var isEven = function (i) {    return _U.eq(A2($Basics.rem,i,2),0);};
    var right = F2(function (b,a) {    return A2($Basics._op["++"],A2($List.take,1,a),A2($List.take,$List.length(b) - 1,b));});
    var left = F2(function (a,b) {    return A2($Basics._op["++"],A2($List.drop,1,a),A2($List.take,1,$List.reverse(b)));});
    var pull = F2(function (a,b) {    return A2($Basics._op["++"],A2($List.drop,1,a),A2($List.take,1,b));});
@@ -10888,11 +10903,29 @@ Elm.Matrix.make = function (_elm) {
       var tasks = A3($List.map2,F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}),actions,rowPairs);
       return A2($List.map,execute,tasks);
    };
-   var join = function (list) {    return function (_p5) {    return A2($Result.withDefault,0,$String.toInt($String.fromList(_p5)));}(list);};
-   var split = function (n) {    return function (_p6) {    return $String.toList($Basics.toString(_p6));}(n);};
+   var join = function (list) {    return function (_p10) {    return A2($Result.withDefault,0,$String.toInt($String.fromList(_p10)));}(list);};
+   var split = function (n) {    return function (_p11) {    return $String.toList($Basics.toString(_p11));}(n);};
    var apply = F2(function (f,l) {    return f(l);});
+   var dropLeadingZero = function (row) {
+      dropLeadingZero: while (true) {
+         var _p12 = row;
+         if (_p12.ctor === "[]") {
+               return _U.list([_U.chr("9")]);
+            } else {
+               if (_p12._0.valueOf() === "0") {
+                     var _v6 = _p12._1;
+                     row = _v6;
+                     continue dropLeadingZero;
+                  } else {
+                     return _p12;
+                  }
+            }
+      }
+   };
    var transformN = F2(function (n,m) {
-      return A3($List.foldl,apply,m,A2($List.take,n,A2($List.intersperse,translate,A2($List.intersperse,rotate,A2($List.repeat,n,mirror)))));
+      return A2($List.map,
+      dropLeadingZero,
+      A3($List.foldl,apply,m,A2($List.take,n,A2($List.intersperse,translate,A2($List.intersperse,mirror,A2($List.repeat,n,rotate))))));
    });
    var base = _U.list([_U.chr("1")
                       ,_U.chr("2")
@@ -10925,11 +10958,22 @@ Elm.Matrix.make = function (_elm) {
       return A2($List.take,size,A2($List.drop,offset,base));
    });
    var seed = function (size) {    return A2($List.map,nthSeedRow(size),_U.range(1,size));};
+   var seed2 = F3(function (width,height,step) {
+      return A2($List.map,
+      function (i) {
+         var w = A2($Basics.min,width,i * step);
+         var r = width - w;
+         return A2($Basics._op["++"],A2(nthSeedRow,w,i),A2($List.repeat,r,_U.chr("0")));
+      },
+      _U.range(1,height));
+   });
    return _elm.Matrix.values = {_op: _op
                                ,base: base
                                ,seed: seed
+                               ,seed2: seed2
                                ,nthSeedRow: nthSeedRow
                                ,transformN: transformN
+                               ,dropLeadingZero: dropLeadingZero
                                ,apply: apply
                                ,split: split
                                ,join: join
@@ -10937,7 +10981,11 @@ Elm.Matrix.make = function (_elm) {
                                ,left: left
                                ,right: right
                                ,isEven: isEven
+                               ,identity: identity
                                ,rotate: rotate
+                               ,splitLeftColumn: splitLeftColumn
+                               ,foldBack: foldBack
+                               ,headtail: headtail
                                ,mirror: mirror
                                ,translate: translate
                                ,execute: execute
@@ -10962,7 +11010,7 @@ Elm.Game.make = function (_elm) {
    var Strategy = F3(function (a,b,c) {    return {initialGame: a,createNext: b,updateState: c};});
    var Board = F4(function (a,b,c,d) {    return {numbers: a,solution: b,width: c,height: d};});
    var Achievements = F3(function (a,b,c) {    return {round: a,score: b,level: c};});
-   var initialAchievements = A3(Achievements,0,0,0);
+   var initialAchievements = A3(Achievements,0,0,{ctor: "_Tuple2",_0: 0,_1: 0});
    var Timeout = {ctor: "Timeout"};
    var Failed = function (a) {    return {ctor: "Failed",_0: a};};
    var Solved = function (a) {    return {ctor: "Solved",_0: a};};
@@ -11058,7 +11106,8 @@ Elm.BasicAdditionGameLogic.make = function (_elm) {
    $Matrix = Elm.Matrix.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm);
+   $Signal = Elm.Signal.make(_elm),
+   $String = Elm.String.make(_elm);
    var _op = {};
    var countErrors = F2(function (solution,input) {
       return $List.length(A2($List.filter,
@@ -11086,36 +11135,61 @@ Elm.BasicAdditionGameLogic.make = function (_elm) {
    var initialMatrix = $Matrix.seed(minLevel);
    var foundLevel = F2(function (round,level) {
       foundLevel: while (true) {
-         var limit = $List.sum(A2($List.map,function (n) {    return n * n;},_U.range(1,level - minLevel + 2)));
-         if (_U.cmp(round,limit) < 0) return level; else {
-               var _v2 = round,_v3 = level + 1;
-               round = _v2;
-               level = _v3;
+         var variant = A2($Basics.rem,round,level + level);
+         var _p3 = function () {
+            var _p4 = variant;
+            switch (_p4)
+            {case 1: return {ctor: "_Tuple3",_0: 0,_1: 0,_2: 1};
+               case 2: return {ctor: "_Tuple3",_0: 1,_1: 0,_2: maxLevel};
+               case 3: return {ctor: "_Tuple3",_0: 0,_1: 1,_2: maxLevel};
+               case 4: return {ctor: "_Tuple3",_0: 1,_1: 2,_2: level / 3 | 0};
+               case 5: return {ctor: "_Tuple3",_0: 2,_1: 1,_2: level / 3 | 0};
+               case 6: return {ctor: "_Tuple3",_0: -1,_1: A2($Basics.min,level,2),_2: maxLevel};
+               case 7: return {ctor: "_Tuple3",_0: A2($Basics.min,level,2),_1: -1,_2: maxLevel};
+               default: return {ctor: "_Tuple3",_0: 0,_1: 0,_2: maxLevel};}
+         }();
+         var dw = _p3._0;
+         var dh = _p3._1;
+         var step = _p3._2;
+         var limit = $List.sum(A2($List.map,function (n) {    return (n + 5) * (n + 1);},_U.range(1,level - minLevel + 2)));
+         if (_U.cmp(round,limit) < 0) return {ctor: "_Tuple3",_0: A2($Basics.min,level + dw,maxLevel),_1: A2($Basics.min,level + dh,maxLevel),_2: step}; else {
+               var _v3 = round,_v4 = level + 1;
+               round = _v3;
+               level = _v4;
                continue foundLevel;
             }
       }
    });
-   var timefactor = 2;
+   var timefactor = 1;
    var createGame = F2(function (numbers,achievements) {
+      var seconds = $List.sum(A2($List.map,
+      function (row) {
+         return $List.sum(A2($List.map,function (_p5) {    return A2($Result.withDefault,0,$String.toInt($String.fromChar(_p5)));},row));
+      },
+      numbers));
       var height = $List.length(numbers);
       var solution = $Matrix.split($List.sum(A2($List.map,$Matrix.join,numbers)));
-      var _p3 = A2($Debug.log,"",$Matrix.join(solution));
+      var _p6 = A2($Debug.log,"",$Matrix.join(solution));
       var width = $List.length(solution);
       var input = A2($Array.repeat,width,_U.chr(" "));
-      var seconds = height + $Basics.ceiling(timefactor * $Basics.toFloat(height * width));
       var board = A4($Game.Board,numbers,solution,width,height);
-      return A8($Game.Game,board,input,width - 1,$Game.InProgress,seconds,achievements,minLevel,maxLevel);
+      return A8($Game.Game,board,input,width - 1,$Game.InProgress,timefactor * seconds,achievements,minLevel,maxLevel);
    });
    var initialGame = function () {
       var achievements = $Game.initialAchievements;
-      return A2(createGame,initialMatrix,_U.update(achievements,{level: minLevel}));
+      return A2(createGame,initialMatrix,_U.update(achievements,{level: {ctor: "_Tuple2",_0: minLevel,_1: minLevel}}));
    }();
    var createNext = function (game) {
       var achievements = game.achievements;
-      var level = A2($Basics.min,A2(foundLevel,game.achievements.round,game.minLevel),game.maxLevel);
+      var _p7 = A2(foundLevel,game.achievements.round,minLevel);
+      var w = _p7._0;
+      var h = _p7._1;
+      var step = _p7._2;
+      var width = A2($Basics.min,A2($Basics.max,w,game.minLevel),game.maxLevel);
+      var height = A2($Basics.min,A2($Basics.max,h,game.minLevel),game.maxLevel);
       var n = A2($Basics.rem,game.achievements.round,maxLevel - minLevel);
-      var numbers = A2($Matrix.transformN,n,$Matrix.seed(level));
-      return A2(createGame,numbers,_U.update(achievements,{level: level}));
+      var numbers = A2($Matrix.transformN,n,A3($Matrix.seed2,width,height,step));
+      return A2(createGame,numbers,_U.update(achievements,{level: {ctor: "_Tuple2",_0: width,_1: height}}));
    };
    var strategy = {initialGame: initialGame,createNext: createNext,updateState: updateState};
    return _elm.BasicAdditionGameLogic.values = {_op: _op
@@ -11156,9 +11230,16 @@ Elm.AdditionGame.make = function (_elm) {
    $String = Elm.String.make(_elm);
    var _op = {};
    var viewBoard = F2(function (address,game) {
+      var numberRows = A2($List.map,
+      function (row) {
+         var width = $List.length(row);
+         var missing = game.maxLevel - width + 1;
+         return A2($Basics._op["++"],A2($List.repeat,missing,_U.chr(" ")),row);
+      },
+      game.board.numbers);
       var emptyCount = game.maxLevel - game.board.height;
-      var emptyRows = A2($List.repeat,emptyCount,_U.list([_U.chr(" ")]));
-      return A2($List.map,$CharRow.view,A2($Basics._op["++"],emptyRows,game.board.numbers));
+      var emptyRows = A2($List.repeat,emptyCount,A2($List.repeat,game.maxLevel + 1,_U.chr(" ")));
+      return A2($List.map,$CharRow.view,A2($Basics._op["++"],emptyRows,numberRows));
    });
    var classForState = function (state) {
       var _p0 = state;

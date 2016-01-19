@@ -93,8 +93,6 @@ html {
 }
 
 .game > .board {
-  min-width: 13.5rem;
-  min-height: 13.5rem;
   padding: 0.5rem;
   box-sizing: border-box;
   text-align: right;
@@ -237,4 +235,8 @@ html {
 
 .cell.v9 {
   background-color: #FFBF00;
+}
+
+.cell.v0 {
+  background-color: lightgray;
 }

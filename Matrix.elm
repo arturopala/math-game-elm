@@ -27,6 +27,21 @@ seed size =
         |> List.map (nthSeedRow size)
 
 
+seed2 : Int -> Int -> Int -> Matrix
+seed2 width height step =
+    [1..height]
+        |> List.map
+            (\i ->
+                (let
+                    w = min width (i * step)
+
+                    r = width - w
+                 in
+                    (nthSeedRow w i) ++ (List.repeat r '0')
+                )
+            )
+
+
 nthSeedRow : Int -> Int -> Row
 nthSeedRow size n =
     let
@@ -44,11 +59,25 @@ nthSeedRow size n =
 
 transformN : Int -> Matrix -> Matrix
 transformN n m =
-    (List.repeat n mirror)
-        |> List.intersperse rotate
+    (List.repeat n rotate)
+        |> List.intersperse mirror
         |> List.intersperse translate
         |> List.take n
         |> List.foldl apply m
+        |> List.map dropLeadingZero
+
+
+dropLeadingZero : Row -> Row
+dropLeadingZero row =
+    case row of
+        [] ->
+            [ '9' ]
+
+        '0' :: xs ->
+            dropLeadingZero xs
+
+        xs ->
+            xs
 
 
 apply : (Matrix -> Matrix) -> Matrix -> Matrix
@@ -86,31 +115,60 @@ isEven i =
     (rem i 2) == 0
 
 
+identity : Matrix -> Matrix
+identity m =
+    m
+
+
 rotate : Matrix -> Matrix
 rotate m =
     let
-        size = List.length m
+        ( leftColumn, rightMatrix ) = splitLeftColumn m
 
-        last = List.drop (size - 1) m
-
-        init = List.take (size - 1) m
-
-        rotated = last ++ init
+        column = List.reverse leftColumn
     in
-        mirror rotated
+        case rightMatrix of
+            [] ->
+                column :: []
+
+            _ ->
+                column :: (rotate rightMatrix)
+
+
+splitLeftColumn : Matrix -> ( Row, Matrix )
+splitLeftColumn m =
+    m
+        |> List.map headtail
+        |> List.foldl foldBack ( [], [] )
+
+
+foldBack : ( Row, Row ) -> ( Row, Matrix ) -> ( Row, Matrix )
+foldBack ( head, tail ) ( row, matrix ) =
+    ( row ++ head
+    , (case tail of
+        [] ->
+            matrix
+
+        x ->
+            matrix ++ [ x ]
+      )
+    )
+
+
+headtail : Row -> ( Row, Row )
+headtail row =
+    let
+        head = List.take 1 row
+
+        tail = List.drop 1 row
+    in
+        ( head, tail )
 
 
 mirror : Matrix -> Matrix
 mirror m =
     m
-        |> List.indexedMap (,)
-        |> List.map
-            (\( i, row ) ->
-                if isEven i then
-                    row
-                else
-                    (List.reverse row)
-            )
+        |> List.map List.reverse
 
 
 translate : Matrix -> Matrix

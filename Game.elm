@@ -22,13 +22,13 @@ type State
 type alias Achievements =
     { round : Int
     , score : Int
-    , level : Int
+    , level : ( Int, Int )
     }
 
 
 initialAchievements : Achievements
 initialAchievements =
-    Achievements 0 0 0
+    Achievements 0 0 ( 0, 0 )
 
 
 type alias Board =

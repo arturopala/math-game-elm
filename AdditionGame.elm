@@ -389,9 +389,22 @@ viewBoard address game =
     let
         emptyCount = game.maxLevel - game.board.height
 
-        emptyRows = List.repeat emptyCount [ ' ' ]
+        emptyRows = List.repeat emptyCount (List.repeat (game.maxLevel + 1) ' ')
+
+        numberRows =
+            game.board.numbers
+                |> List.map
+                    (\row ->
+                        (let
+                            width = List.length row
+
+                            missing = game.maxLevel - width + 1
+                         in
+                            (List.repeat missing ' ') ++ row
+                        )
+                    )
     in
-        List.map CharRow.view (emptyRows ++ game.board.numbers)
+        List.map CharRow.view (emptyRows ++ numberRows)
 
 
 viewInputRow : Signal.Address Action -> Game -> Html

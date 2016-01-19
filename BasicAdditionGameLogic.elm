@@ -9,7 +9,7 @@ import Matrix exposing (Row, Matrix)
 
 
 timefactor =
-    2
+    1
 
 
 minLevel =
@@ -38,7 +38,7 @@ initialGame =
     let
         achievements = Game.initialAchievements
     in
-        createGame initialMatrix { achievements | level = minLevel }
+        createGame initialMatrix { achievements | level = ( minLevel, minLevel ) }
 
 
 createNext : Game -> Game
@@ -46,26 +46,58 @@ createNext game =
     let
         n = rem game.achievements.round (maxLevel - minLevel)
 
-        level = min (foundLevel game.achievements.round game.minLevel) game.maxLevel
+        ( w, h, step ) = foundLevel game.achievements.round minLevel
+
+        width = min (max w game.minLevel) game.maxLevel
+
+        height = min (max h game.minLevel) game.maxLevel
 
         numbers =
-            Matrix.transformN n (Matrix.seed level)
+            Matrix.transformN n (Matrix.seed2 width height step)
 
         achievements = game.achievements
     in
-        createGame numbers { achievements | level = level }
+        createGame numbers { achievements | level = ( width, height ) }
 
 
-foundLevel : Int -> Int -> Int
+foundLevel : Int -> Int -> ( Int, Int, Int )
 foundLevel round level =
     let
         limit =
             [1..(level - minLevel + 2)]
-                |> List.map (\n -> n * n)
+                |> List.map (\n -> (n + 5) * (n + 1))
                 |> List.sum
+
+        variant = rem round (level + level)
+
+        ( dw, dh, step ) =
+            case variant of
+                1 ->
+                    ( 0, 0, 1 )
+
+                2 ->
+                    ( 1, 0, maxLevel )
+
+                3 ->
+                    ( 0, 1, maxLevel )
+
+                4 ->
+                    ( 1, 2, level // 3 )
+
+                5 ->
+                    ( 2, 1, level // 3 )
+
+                6 ->
+                    ( -1, (min level 2), maxLevel )
+
+                7 ->
+                    ( (min level 2), -1, maxLevel )
+
+                _ ->
+                    ( 0, 0, maxLevel )
     in
         if (round < limit) then
-            level
+            ( (min (level + dw) maxLevel), (min (level + dh) maxLevel), step )
         else
             foundLevel round (level + 1)
 
@@ -89,9 +121,9 @@ createGame numbers achievements =
 
         input = Array.repeat width ' '
 
-        seconds = height + (ceiling (timefactor * (toFloat (height * width))))
+        seconds = numbers |> List.map (\row -> List.sum (List.map (String.fromChar >> String.toInt >> Result.withDefault 0) row)) |> List.sum
     in
-        Game board input (width - 1) InProgress seconds achievements minLevel maxLevel
+        Game board input (width - 1) InProgress (timefactor * seconds) achievements minLevel maxLevel
 
 
 updateState : Game -> Row -> Int -> ( State, Int )
