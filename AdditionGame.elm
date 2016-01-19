@@ -5,31 +5,17 @@ import Html exposing (..)
 import Html.Attributes exposing (class, classList, style)
 import Html.Events exposing (..)
 import String exposing (length)
+import Char
+import Debug
+import Game exposing (..)
 import Array exposing (Array)
 import Matrix exposing (Row, Matrix)
 import CharRow
 import InputRow
-import Char
-import Debug
+import BasicAdditionGameLogic
 
 
 -- CONFIG
-
-
-levelLength =
-    5
-
-
-minLevel =
-    3
-
-
-maxLevel =
-    9
-
-
-timefactor =
-    1
 
 
 waitPeriod =
@@ -40,92 +26,15 @@ waitPeriod =
 -- MODEL
 
 
-type GameState
-    = InProgress
-    | Solved Int
-    | Failed Int
-    | Timeout
-
-
-type alias Achievements =
-    { round : Int
-    , score : Int
-    }
-
-
-type alias Board =
-    { numbers : Matrix
-    , solution : Row
-    , width : Int
-    , height : Int
-    }
-
-
 type alias Model =
-    { board : Board
-    , input : Array Char
-    , cursorPosition : Int
-    , state : GameState
-    , clock : Int
-    , achievements : Achievements
-    , level : Int
+    { game : Game
+    , strategy : Strategy
     }
 
 
 init : ( Model, Effects Action )
 init =
-    ( createNextModel (Achievements 0 0), Effects.none )
-
-
-createNextModel : Achievements -> Model
-createNextModel achievements =
-    let
-        n = rem achievements.round levelLength
-
-        level = min (foundLevel achievements.round minLevel) maxLevel
-
-        numbers =
-            Matrix.transformN n (Matrix.seed level)
-    in
-        createModel level numbers achievements
-
-
-foundLevel : Int -> Int -> Int
-foundLevel round level =
-    let
-        limit =
-            [1..(level - minLevel + 2)]
-                |> List.map (\n -> n * n)
-                |> List.sum
-    in
-        if (round < limit) then
-            level
-        else
-            foundLevel round (level + 1)
-
-
-createModel : Int -> Matrix -> Achievements -> Model
-createModel level numbers achievements =
-    let
-        solution =
-            numbers
-                |> List.map Matrix.join
-                |> List.sum
-                |> Matrix.split
-
-        _ = Debug.log "" (Matrix.join solution)
-
-        width = List.length solution
-
-        height = List.length numbers
-
-        board = Board numbers solution width height
-
-        input = Array.repeat width ' '
-
-        seconds = height + (ceiling (timefactor * (toFloat (height * width))))
-    in
-        Model board input (width - 1) InProgress seconds achievements level
+    ( Model BasicAdditionGameLogic.initialGame BasicAdditionGameLogic.strategy, Effects.none )
 
 
 
@@ -153,50 +62,59 @@ arrowAsAction { x, y } =
 
 update : Action -> Model -> ( Model, Effects Action )
 update message model =
-    case message of
-        KeyPressed code ->
-            let
-                character = Char.fromCode code
-
-                digit = code - 48
-            in
-                if (digit >= 0 && digit <= 9) then
-                    updateModelWithNewInput model character
-                else if code == 127 then
-                    updateModelWithNewInput model '?'
-                else
-                    ( model, Effects.none )
-
-        ArrowRight ->
-            ( moveCursorRight model, Effects.none )
-
-        ArrowLeft ->
-            ( moveCursorLeft model, Effects.none )
-
-        Tick ->
-            updateModelWithNewClock model (model.clock - 1)
-
-        NextRound ->
-            let
-                achievements = model.achievements
-            in
-                ( createNextModel
-                    { achievements
-                        | round = model.achievements.round + 1
-                    }
-                , Effects.none
-                )
-
-        _ ->
-            ( model, Effects.none )
-
-
-updateModelWithNewInput : Model -> Char -> ( Model, Effects Action )
-updateModelWithNewInput model character =
     let
-        position = model.cursorPosition
+        { game, strategy } = model
+    in
+        case message of
+            KeyPressed code ->
+                let
+                    character = Char.fromCode code
 
-        newinput = updateInput model.input position character
+                    digit = code - 48
+                in
+                    if (digit >= 0 && digit <= 9) then
+                        ( { model | game = updateGameWithNewInput game strategy character }, Effects.none )
+                    else if code == 127 then
+                        ( { model | game = updateGameWithNewInput game strategy '?' }, Effects.none )
+                    else
+                        ( model, Effects.none )
+
+            ArrowRight ->
+                ( { model | game = moveCursorRight game }, Effects.none )
+
+            ArrowLeft ->
+                ( { model | game = moveCursorLeft game }, Effects.none )
+
+            Tick ->
+                ( { model | game = updateGameWithNewClock game strategy (game.clock - 1) }, Effects.none )
+
+            NextRound ->
+                let
+                    achievements = game.achievements
+                in
+                    ( { model
+                        | game =
+                            strategy.createNext
+                                { game
+                                    | achievements =
+                                        { achievements
+                                            | round = game.achievements.round + 1
+                                        }
+                                }
+                      }
+                    , Effects.none
+                    )
+
+            _ ->
+                ( model, Effects.none )
+
+
+updateGameWithNewInput : Game -> Strategy -> Char -> Game
+updateGameWithNewInput game strategy character =
+    let
+        position = game.cursorPosition
+
+        newinput = updateInput game.input position character
 
         isdeleted = character == '?'
 
@@ -206,28 +124,28 @@ updateModelWithNewInput model character =
              else
                 position - 1
             )
-                % model.board.width
+                % game.board.width
 
         ( newstate, earned ) =
-            updateState
-                model
+            strategy.updateState
+                game
                 (Array.toList newinput)
-                model.clock
+                game.clock
 
-        achievements = model.achievements
+        achievements = game.achievements
 
         newachievements =
             { achievements | score = achievements.score + earned }
     in
-        case model.state of
+        case game.state of
             Solved score ->
-                ( model, Effects.none )
+                game
 
             Timeout ->
-                ( model, Effects.none )
+                game
 
             _ ->
-                ( { model
+                { game
                     | input = newinput
                     , cursorPosition = newposition
                     , state = newstate
@@ -238,78 +156,54 @@ updateModelWithNewInput model character =
                                 0
 
                             _ ->
-                                model.clock
-                  }
-                , Effects.none
-                )
+                                game.clock
+                }
 
 
-updateModelWithNewClock : Model -> Int -> ( Model, Effects Action )
-updateModelWithNewClock model clock =
+updateGameWithNewClock : Game -> Strategy -> Int -> Game
+updateGameWithNewClock game strategy clock =
     let
-        achievements = model.achievements
+        achievements = game.achievements
 
         ( newstate, earned ) =
-            updateState
-                model
-                (Array.toList model.input)
+            strategy.updateState
+                game
+                (Array.toList game.input)
                 clock
 
         newachievements =
             { achievements | score = achievements.score + earned }
 
-        newmodel =
+        newgame =
             if (clock == (-waitPeriod)) then
-                createNextModel
-                    { achievements
-                        | round = achievements.round + 1
+                strategy.createNext
+                    { game
+                        | achievements =
+                            { achievements
+                                | round = achievements.round + 1
+                            }
                     }
             else
-                { model
+                { game
                     | clock = clock
                     , state = newstate
                     , achievements = newachievements
                 }
     in
-        ( newmodel, Effects.none )
+        newgame
 
 
-updateState : Model -> Row -> Int -> ( GameState, Int )
-updateState model input clock =
-    case model.state of
-        Solved score ->
-            ( Solved score, 0 )
-
-        Timeout ->
-            ( Timeout, 0 )
-
-        _ ->
-            let
-                correctInputs = model.board.width - (countErrors model.board.solution input)
-
-                points = (clock + correctInputs + (model.board.width * model.board.height))
-            in
-                if (clock == 0) then
-                    ( Timeout, correctInputs )
-                else if (input == model.board.solution) then
-                    ( Solved points, points )
-                else if (List.all Char.isDigit input) then
-                    ( Failed (countErrors model.board.solution input), 0 )
-                else
-                    ( InProgress, 0 )
-
-
-moveCursorLeft : Model -> Model
-moveCursorLeft model =
-    { model
-        | cursorPosition = (model.cursorPosition - 1) % model.board.width
+moveCursorLeft : Game -> Game
+moveCursorLeft game =
+    { game
+        | cursorPosition = (game.cursorPosition - 1) % game.board.width
     }
 
 
-moveCursorRight : Model -> Model
-moveCursorRight model =
-    { model
-        | cursorPosition = (model.cursorPosition + 1) % model.board.width
+moveCursorRight : Game -> Game
+moveCursorRight game =
+    { game
+        | cursorPosition = (game.cursorPosition + 1) % game.board.width
     }
 
 
@@ -321,23 +215,16 @@ updateInput input pos char =
         Array.set pos ' ' input
 
 
-countErrors : Row -> Row -> Int
-countErrors solution input =
-    List.map2 (,) solution input
-        |> List.filter (\( a, b ) -> a /= b)
-        |> List.length
-
-
 
 -- VIEW
 
 
 view : Signal.Address Action -> Model -> Html
-view address model =
+view address { game } =
     let
-        numberRows = viewBoard address model
+        numberRows = viewBoard address game
 
-        inputRow = viewInputRow address model
+        inputRow = viewInputRow address game
 
         achievementsPanel =
             div
@@ -347,13 +234,13 @@ view address model =
                     [ text "Round" ]
                 , span
                     [ class "round" ]
-                    [ text (toString (model.achievements.round + 1)) ]
+                    [ text (toString (game.achievements.round + 1)) ]
                 , span
                     []
                     [ text "Score" ]
                 , span
                     [ class "score" ]
-                    [ text (toString model.achievements.score) ]
+                    [ text (toString game.achievements.score) ]
                 , span
                     [ class "buttons" ]
                     [ i
@@ -367,7 +254,7 @@ view address model =
         statePanel =
             div
                 [ class "state" ]
-                [ gameStateInfo model ]
+                [ gameStateInfo game ]
 
         exercisePanel =
             div
@@ -384,7 +271,7 @@ view address model =
         div
             [ classList
                 [ ( "game", True )
-                , ( (classForState model.state), True )
+                , ( (classForState game.state), True )
                 ]
             ]
             [ achievementsPanel
@@ -393,12 +280,12 @@ view address model =
             ]
 
 
-gameStateInfo : Model -> Html
-gameStateInfo model =
-    case model.state of
+gameStateInfo : Game -> Html
+gameStateInfo game =
+    case game.state of
         Solved score ->
             let
-                clock = (waitPeriod + model.clock)
+                clock = (waitPeriod + game.clock)
             in
                 span
                     []
@@ -420,7 +307,7 @@ gameStateInfo model =
 
         Timeout ->
             let
-                clock = (waitPeriod + model.clock)
+                clock = (waitPeriod + game.clock)
             in
                 span
                     []
@@ -442,7 +329,7 @@ gameStateInfo model =
                 [ span
                     [ class "clock" ]
                     [ text
-                        (model.clock
+                        (game.clock
                             |> toString
                             |> (String.padLeft 3 '0')
                         )
@@ -450,7 +337,7 @@ gameStateInfo model =
                 , span
                     []
                     [ text
-                        (if model.clock > 1 then
+                        (if game.clock > 1 then
                             " secs left ..."
                          else
                             " sec ..."
@@ -464,7 +351,7 @@ gameStateInfo model =
                 [ span
                     [ class "clock" ]
                     [ text
-                        (model.clock
+                        (game.clock
                             |> toString
                             |> (String.padLeft 3 '0')
                         )
@@ -481,7 +368,7 @@ gameStateInfo model =
                 ]
 
 
-classForState : GameState -> String
+classForState : State -> String
 classForState state =
     case state of
         InProgress ->
@@ -497,21 +384,21 @@ classForState state =
             "timeout"
 
 
-viewBoard : Signal.Address Action -> Model -> List Html
-viewBoard address model =
+viewBoard : Signal.Address Action -> Game -> List Html
+viewBoard address game =
     let
-        emptyCount = maxLevel - model.board.height
+        emptyCount = game.maxLevel - game.board.height
 
         emptyRows = List.repeat emptyCount [ ' ' ]
     in
-        List.map CharRow.view (emptyRows ++ model.board.numbers)
+        List.map CharRow.view (emptyRows ++ game.board.numbers)
 
 
-viewInputRow : Signal.Address Action -> Model -> Html
-viewInputRow address model =
+viewInputRow : Signal.Address Action -> Game -> Html
+viewInputRow address game =
     InputRow.view
         (Signal.forwardTo address inputRowAction)
-        (InputRow.Model model.board.solution model.input model.cursorPosition True (model.state == Timeout))
+        (InputRow.Model game.board.solution game.input game.cursorPosition True (game.state == Timeout))
 
 
 inputRowAction : InputRow.Action -> Action

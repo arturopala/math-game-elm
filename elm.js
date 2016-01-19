@@ -10943,6 +10943,41 @@ Elm.Matrix.make = function (_elm) {
                                ,execute: execute
                                ,pairs: pairs};
 };
+Elm.Game = Elm.Game || {};
+Elm.Game.make = function (_elm) {
+   "use strict";
+   _elm.Game = _elm.Game || {};
+   if (_elm.Game.values) return _elm.Game.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Array = Elm.Array.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Matrix = Elm.Matrix.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var Game = F8(function (a,b,c,d,e,f,g,h) {    return {board: a,input: b,cursorPosition: c,state: d,clock: e,achievements: f,minLevel: g,maxLevel: h};});
+   var Strategy = F3(function (a,b,c) {    return {initialGame: a,createNext: b,updateState: c};});
+   var Board = F4(function (a,b,c,d) {    return {numbers: a,solution: b,width: c,height: d};});
+   var Achievements = F3(function (a,b,c) {    return {round: a,score: b,level: c};});
+   var initialAchievements = A3(Achievements,0,0,0);
+   var Timeout = {ctor: "Timeout"};
+   var Failed = function (a) {    return {ctor: "Failed",_0: a};};
+   var Solved = function (a) {    return {ctor: "Solved",_0: a};};
+   var InProgress = {ctor: "InProgress"};
+   return _elm.Game.values = {_op: _op
+                             ,InProgress: InProgress
+                             ,Solved: Solved
+                             ,Failed: Failed
+                             ,Timeout: Timeout
+                             ,Achievements: Achievements
+                             ,initialAchievements: initialAchievements
+                             ,Board: Board
+                             ,Strategy: Strategy
+                             ,Game: Game};
+};
 Elm.CharRow = Elm.CharRow || {};
 Elm.CharRow.make = function (_elm) {
    "use strict";
@@ -11008,6 +11043,94 @@ Elm.InputRow.make = function (_elm) {
    var Model = F5(function (a,b,c,d,e) {    return {solution: a,input: b,cursorPosition: c,showErrors: d,showSolution: e};});
    return _elm.InputRow.values = {_op: _op,Model: Model,Noop: Noop,view: view,inputFieldView: inputFieldView};
 };
+Elm.BasicAdditionGameLogic = Elm.BasicAdditionGameLogic || {};
+Elm.BasicAdditionGameLogic.make = function (_elm) {
+   "use strict";
+   _elm.BasicAdditionGameLogic = _elm.BasicAdditionGameLogic || {};
+   if (_elm.BasicAdditionGameLogic.values) return _elm.BasicAdditionGameLogic.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Array = Elm.Array.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Char = Elm.Char.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $Game = Elm.Game.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Matrix = Elm.Matrix.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var countErrors = F2(function (solution,input) {
+      return $List.length(A2($List.filter,
+      function (_p0) {
+         var _p1 = _p0;
+         return !_U.eq(_p1._0,_p1._1);
+      },
+      A3($List.map2,F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}),solution,input)));
+   });
+   var updateState = F3(function (game,input,clock) {
+      var _p2 = game.state;
+      switch (_p2.ctor)
+      {case "Solved": return {ctor: "_Tuple2",_0: $Game.Solved(_p2._0),_1: 0};
+         case "Timeout": return {ctor: "_Tuple2",_0: $Game.Timeout,_1: 0};
+         default: var correctInputs = game.board.width - A2(countErrors,game.board.solution,input);
+           var points = clock + correctInputs + game.board.width * game.board.height;
+           return _U.eq(clock,0) ? {ctor: "_Tuple2",_0: $Game.Timeout,_1: correctInputs} : _U.eq(input,game.board.solution) ? {ctor: "_Tuple2"
+                                                                                                                              ,_0: $Game.Solved(points)
+                                                                                                                              ,_1: points} : A2($List.all,
+           $Char.isDigit,
+           input) ? {ctor: "_Tuple2",_0: $Game.Failed(A2(countErrors,game.board.solution,input)),_1: 0} : {ctor: "_Tuple2",_0: $Game.InProgress,_1: 0};}
+   });
+   var maxLevel = 9;
+   var minLevel = 2;
+   var initialMatrix = $Matrix.seed(minLevel);
+   var foundLevel = F2(function (round,level) {
+      foundLevel: while (true) {
+         var limit = $List.sum(A2($List.map,function (n) {    return n * n;},_U.range(1,level - minLevel + 2)));
+         if (_U.cmp(round,limit) < 0) return level; else {
+               var _v2 = round,_v3 = level + 1;
+               round = _v2;
+               level = _v3;
+               continue foundLevel;
+            }
+      }
+   });
+   var timefactor = 2;
+   var createGame = F2(function (numbers,achievements) {
+      var height = $List.length(numbers);
+      var solution = $Matrix.split($List.sum(A2($List.map,$Matrix.join,numbers)));
+      var _p3 = A2($Debug.log,"",$Matrix.join(solution));
+      var width = $List.length(solution);
+      var input = A2($Array.repeat,width,_U.chr(" "));
+      var seconds = height + $Basics.ceiling(timefactor * $Basics.toFloat(height * width));
+      var board = A4($Game.Board,numbers,solution,width,height);
+      return A8($Game.Game,board,input,width - 1,$Game.InProgress,seconds,achievements,minLevel,maxLevel);
+   });
+   var initialGame = function () {
+      var achievements = $Game.initialAchievements;
+      return A2(createGame,initialMatrix,_U.update(achievements,{level: minLevel}));
+   }();
+   var createNext = function (game) {
+      var achievements = game.achievements;
+      var level = A2($Basics.min,A2(foundLevel,game.achievements.round,game.minLevel),game.maxLevel);
+      var n = A2($Basics.rem,game.achievements.round,maxLevel - minLevel);
+      var numbers = A2($Matrix.transformN,n,$Matrix.seed(level));
+      return A2(createGame,numbers,_U.update(achievements,{level: level}));
+   };
+   var strategy = {initialGame: initialGame,createNext: createNext,updateState: updateState};
+   return _elm.BasicAdditionGameLogic.values = {_op: _op
+                                               ,timefactor: timefactor
+                                               ,minLevel: minLevel
+                                               ,maxLevel: maxLevel
+                                               ,strategy: strategy
+                                               ,initialMatrix: initialMatrix
+                                               ,initialGame: initialGame
+                                               ,createNext: createNext
+                                               ,foundLevel: foundLevel
+                                               ,createGame: createGame
+                                               ,updateState: updateState
+                                               ,countErrors: countErrors};
+};
 Elm.AdditionGame = Elm.AdditionGame || {};
 Elm.AdditionGame.make = function (_elm) {
    "use strict";
@@ -11015,22 +11138,28 @@ Elm.AdditionGame.make = function (_elm) {
    if (_elm.AdditionGame.values) return _elm.AdditionGame.values;
    var _U = Elm.Native.Utils.make(_elm),
    $Array = Elm.Array.make(_elm),
+   $BasicAdditionGameLogic = Elm.BasicAdditionGameLogic.make(_elm),
    $Basics = Elm.Basics.make(_elm),
    $Char = Elm.Char.make(_elm),
    $CharRow = Elm.CharRow.make(_elm),
    $Debug = Elm.Debug.make(_elm),
    $Effects = Elm.Effects.make(_elm),
+   $Game = Elm.Game.make(_elm),
    $Html = Elm.Html.make(_elm),
    $Html$Attributes = Elm.Html.Attributes.make(_elm),
    $Html$Events = Elm.Html.Events.make(_elm),
    $InputRow = Elm.InputRow.make(_elm),
    $List = Elm.List.make(_elm),
-   $Matrix = Elm.Matrix.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $String = Elm.String.make(_elm);
    var _op = {};
+   var viewBoard = F2(function (address,game) {
+      var emptyCount = game.maxLevel - game.board.height;
+      var emptyRows = A2($List.repeat,emptyCount,_U.list([_U.chr(" ")]));
+      return A2($List.map,$CharRow.view,A2($Basics._op["++"],emptyRows,game.board.numbers));
+   });
    var classForState = function (state) {
       var _p0 = state;
       switch (_p0.ctor)
@@ -11039,93 +11168,105 @@ Elm.AdditionGame.make = function (_elm) {
          case "Failed": return "wrong";
          default: return "timeout";}
    };
-   var countErrors = F2(function (solution,input) {
-      return $List.length(A2($List.filter,
-      function (_p1) {
-         var _p2 = _p1;
-         return !_U.eq(_p2._0,_p2._1);
-      },
-      A3($List.map2,F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}),solution,input)));
-   });
    var updateInput = F3(function (input,pos,$char) {    return $Char.isDigit($char) ? A3($Array.set,pos,$char,input) : A3($Array.set,pos,_U.chr(" "),input);});
-   var moveCursorRight = function (model) {    return _U.update(model,{cursorPosition: A2($Basics._op["%"],model.cursorPosition + 1,model.board.width)});};
-   var moveCursorLeft = function (model) {    return _U.update(model,{cursorPosition: A2($Basics._op["%"],model.cursorPosition - 1,model.board.width)});};
+   var moveCursorRight = function (game) {    return _U.update(game,{cursorPosition: A2($Basics._op["%"],game.cursorPosition + 1,game.board.width)});};
+   var moveCursorLeft = function (game) {    return _U.update(game,{cursorPosition: A2($Basics._op["%"],game.cursorPosition - 1,game.board.width)});};
+   var updateGameWithNewInput = F3(function (game,strategy,character) {
+      var achievements = game.achievements;
+      var isdeleted = _U.eq(character,_U.chr("?"));
+      var position = game.cursorPosition;
+      var newinput = A3(updateInput,game.input,position,character);
+      var _p1 = A3(strategy.updateState,game,$Array.toList(newinput),game.clock);
+      var newstate = _p1._0;
+      var earned = _p1._1;
+      var newachievements = _U.update(achievements,{score: achievements.score + earned});
+      var newposition = A2($Basics._op["%"],isdeleted ? position : position - 1,game.board.width);
+      var _p2 = game.state;
+      switch (_p2.ctor)
+      {case "Solved": return game;
+         case "Timeout": return game;
+         default: return _U.update(game,
+           {input: newinput
+           ,cursorPosition: newposition
+           ,state: newstate
+           ,achievements: newachievements
+           ,clock: function () {
+              var _p3 = newstate;
+              if (_p3.ctor === "Solved") {
+                    return 0;
+                 } else {
+                    return game.clock;
+                 }
+           }()});}
+   });
    var NextRound = {ctor: "NextRound"};
    var Tick = {ctor: "Tick"};
    var ArrowRight = {ctor: "ArrowRight"};
    var ArrowLeft = {ctor: "ArrowLeft"};
    var KeyPressed = function (a) {    return {ctor: "KeyPressed",_0: a};};
    var Noop = {ctor: "Noop"};
-   var arrowAsAction = function (_p3) {    var _p4 = _p3;var _p5 = _p4.x;return _U.eq(_p5,1) ? ArrowRight : _U.eq(_p5,-1) ? ArrowLeft : Noop;};
-   var inputRowAction = function (a) {    var _p6 = a;return Noop;};
-   var Model = F7(function (a,b,c,d,e,f,g) {    return {board: a,input: b,cursorPosition: c,state: d,clock: e,achievements: f,level: g};});
-   var Board = F4(function (a,b,c,d) {    return {numbers: a,solution: b,width: c,height: d};});
-   var Achievements = F2(function (a,b) {    return {round: a,score: b};});
-   var Timeout = {ctor: "Timeout"};
-   var viewInputRow = F2(function (address,model) {
+   var arrowAsAction = function (_p4) {    var _p5 = _p4;var _p6 = _p5.x;return _U.eq(_p6,1) ? ArrowRight : _U.eq(_p6,-1) ? ArrowLeft : Noop;};
+   var inputRowAction = function (a) {    var _p7 = a;return Noop;};
+   var viewInputRow = F2(function (address,game) {
       return A2($InputRow.view,
       A2($Signal.forwardTo,address,inputRowAction),
-      A5($InputRow.Model,model.board.solution,model.input,model.cursorPosition,true,_U.eq(model.state,Timeout)));
+      A5($InputRow.Model,game.board.solution,game.input,game.cursorPosition,true,_U.eq(game.state,$Game.Timeout)));
    });
-   var Failed = function (a) {    return {ctor: "Failed",_0: a};};
-   var Solved = function (a) {    return {ctor: "Solved",_0: a};};
-   var InProgress = {ctor: "InProgress"};
-   var updateState = F3(function (model,input,clock) {
-      var _p7 = model.state;
-      switch (_p7.ctor)
-      {case "Solved": return {ctor: "_Tuple2",_0: Solved(_p7._0),_1: 0};
-         case "Timeout": return {ctor: "_Tuple2",_0: Timeout,_1: 0};
-         default: var correctInputs = model.board.width - A2(countErrors,model.board.solution,input);
-           var points = clock + correctInputs + model.board.width * model.board.height;
-           return _U.eq(clock,0) ? {ctor: "_Tuple2",_0: Timeout,_1: correctInputs} : _U.eq(input,model.board.solution) ? {ctor: "_Tuple2"
-                                                                                                                         ,_0: Solved(points)
-                                                                                                                         ,_1: points} : A2($List.all,
-           $Char.isDigit,
-           input) ? {ctor: "_Tuple2",_0: Failed(A2(countErrors,model.board.solution,input)),_1: 0} : {ctor: "_Tuple2",_0: InProgress,_1: 0};}
-   });
-   var updateModelWithNewInput = F2(function (model,character) {
-      var achievements = model.achievements;
-      var isdeleted = _U.eq(character,_U.chr("?"));
-      var position = model.cursorPosition;
-      var newinput = A3(updateInput,model.input,position,character);
-      var _p8 = A3(updateState,model,$Array.toList(newinput),model.clock);
+   var Model = F2(function (a,b) {    return {game: a,strategy: b};});
+   var init = {ctor: "_Tuple2",_0: A2(Model,$BasicAdditionGameLogic.initialGame,$BasicAdditionGameLogic.strategy),_1: $Effects.none};
+   var waitPeriod = 7;
+   var updateGameWithNewClock = F3(function (game,strategy,clock) {
+      var _p8 = A3(strategy.updateState,game,$Array.toList(game.input),clock);
       var newstate = _p8._0;
       var earned = _p8._1;
+      var achievements = game.achievements;
       var newachievements = _U.update(achievements,{score: achievements.score + earned});
-      var newposition = A2($Basics._op["%"],isdeleted ? position : position - 1,model.board.width);
-      var _p9 = model.state;
-      switch (_p9.ctor)
-      {case "Solved": return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
-         case "Timeout": return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
-         default: return {ctor: "_Tuple2"
-                         ,_0: _U.update(model,
-                         {input: newinput
-                         ,cursorPosition: newposition
-                         ,state: newstate
-                         ,achievements: newachievements
-                         ,clock: function () {
-                            var _p10 = newstate;
-                            if (_p10.ctor === "Solved") {
-                                  return 0;
-                               } else {
-                                  return model.clock;
-                               }
-                         }()})
-                         ,_1: $Effects.none};}
+      var newgame = _U.eq(clock,0 - waitPeriod) ? strategy.createNext(_U.update(game,
+      {achievements: _U.update(achievements,{round: achievements.round + 1})})) : _U.update(game,{clock: clock,state: newstate,achievements: newachievements});
+      return newgame;
    });
-   var waitPeriod = 7;
-   var gameStateInfo = function (model) {
-      var _p11 = model.state;
-      switch (_p11.ctor)
-      {case "Solved": var clock = waitPeriod + model.clock;
+   var update = F2(function (message,model) {
+      var _p9 = model;
+      var game = _p9.game;
+      var strategy = _p9.strategy;
+      var _p10 = message;
+      switch (_p10.ctor)
+      {case "KeyPressed": var _p11 = _p10._0;
+           var digit = _p11 - 48;
+           var character = $Char.fromCode(_p11);
+           return _U.cmp(digit,0) > -1 && _U.cmp(digit,9) < 1 ? {ctor: "_Tuple2"
+                                                                ,_0: _U.update(model,{game: A3(updateGameWithNewInput,game,strategy,character)})
+                                                                ,_1: $Effects.none} : _U.eq(_p11,127) ? {ctor: "_Tuple2"
+                                                                                                        ,_0: _U.update(model,
+                                                                                                        {game: A3(updateGameWithNewInput,
+                                                                                                        game,
+                                                                                                        strategy,
+                                                                                                        _U.chr("?"))})
+                                                                                                        ,_1: $Effects.none} : {ctor: "_Tuple2"
+                                                                                                                              ,_0: model
+                                                                                                                              ,_1: $Effects.none};
+         case "ArrowRight": return {ctor: "_Tuple2",_0: _U.update(model,{game: moveCursorRight(game)}),_1: $Effects.none};
+         case "ArrowLeft": return {ctor: "_Tuple2",_0: _U.update(model,{game: moveCursorLeft(game)}),_1: $Effects.none};
+         case "Tick": return {ctor: "_Tuple2",_0: _U.update(model,{game: A3(updateGameWithNewClock,game,strategy,game.clock - 1)}),_1: $Effects.none};
+         case "NextRound": var achievements = game.achievements;
+           return {ctor: "_Tuple2"
+                  ,_0: _U.update(model,
+                  {game: strategy.createNext(_U.update(game,{achievements: _U.update(achievements,{round: game.achievements.round + 1})}))})
+                  ,_1: $Effects.none};
+         default: return {ctor: "_Tuple2",_0: model,_1: $Effects.none};}
+   });
+   var gameStateInfo = function (game) {
+      var _p12 = game.state;
+      switch (_p12.ctor)
+      {case "Solved": var clock = waitPeriod + game.clock;
            return A2($Html.span,
            _U.list([]),
            _U.list([$Html.text("You got ")
-                   ,A2($Html.span,_U.list([$Html$Attributes.$class("score")]),_U.list([$Html.text(A2($Basics._op["++"],"+",$Basics.toString(_p11._0)))]))
+                   ,A2($Html.span,_U.list([$Html$Attributes.$class("score")]),_U.list([$Html.text(A2($Basics._op["++"],"+",$Basics.toString(_p12._0)))]))
                    ,$Html.text(" points !!! Next play for ")
                    ,A2($Html.span,_U.list([$Html$Attributes.$class("clock")]),_U.list([$Html.text($Basics.toString(clock))]))
                    ,$Html.text(_U.cmp(clock,1) > 0 ? " secs" : " sec")]));
-         case "Timeout": var clock = waitPeriod + model.clock;
+         case "Timeout": var clock = waitPeriod + game.clock;
            return A2($Html.span,
            _U.list([]),
            _U.list([$Html.text("Time is over, try next for ")
@@ -11135,117 +11276,43 @@ Elm.AdditionGame.make = function (_elm) {
            _U.list([]),
            _U.list([A2($Html.span,
                    _U.list([$Html$Attributes.$class("clock")]),
-                   _U.list([$Html.text(A3($String.padLeft,3,_U.chr("0"),$Basics.toString(model.clock)))]))
-                   ,A2($Html.span,_U.list([]),_U.list([$Html.text(_U.cmp(model.clock,1) > 0 ? " secs left ..." : " sec ...")]))]));
+                   _U.list([$Html.text(A3($String.padLeft,3,_U.chr("0"),$Basics.toString(game.clock)))]))
+                   ,A2($Html.span,_U.list([]),_U.list([$Html.text(_U.cmp(game.clock,1) > 0 ? " secs left ..." : " sec ...")]))]));
          default: return A2($Html.span,
            _U.list([]),
            _U.list([A2($Html.span,
                    _U.list([$Html$Attributes.$class("clock")]),
-                   _U.list([$Html.text(A3($String.padLeft,3,_U.chr("0"),$Basics.toString(model.clock)))]))
+                   _U.list([$Html.text(A3($String.padLeft,3,_U.chr("0"),$Basics.toString(game.clock)))]))
                    ,A2($Html.span,_U.list([]),_U.list([$Html.text(" secs left, correct ")]))
-                   ,A2($Html.span,_U.list([$Html$Attributes.$class("errors")]),_U.list([$Html.text($Basics.toString(_p11._0))]))
+                   ,A2($Html.span,_U.list([$Html$Attributes.$class("errors")]),_U.list([$Html.text($Basics.toString(_p12._0))]))
                    ,A2($Html.span,_U.list([]),_U.list([$Html.text(" errors!")]))]));}
    };
-   var timefactor = 1;
-   var createModel = F3(function (level,numbers,achievements) {
-      var height = $List.length(numbers);
-      var solution = $Matrix.split($List.sum(A2($List.map,$Matrix.join,numbers)));
-      var _p12 = A2($Debug.log,"",$Matrix.join(solution));
-      var width = $List.length(solution);
-      var input = A2($Array.repeat,width,_U.chr(" "));
-      var seconds = height + $Basics.ceiling(timefactor * $Basics.toFloat(height * width));
-      var board = A4(Board,numbers,solution,width,height);
-      return A7(Model,board,input,width - 1,InProgress,seconds,achievements,level);
-   });
-   var maxLevel = 9;
-   var viewBoard = F2(function (address,model) {
-      var emptyCount = maxLevel - model.board.height;
-      var emptyRows = A2($List.repeat,emptyCount,_U.list([_U.chr(" ")]));
-      return A2($List.map,$CharRow.view,A2($Basics._op["++"],emptyRows,model.board.numbers));
-   });
-   var view = F2(function (address,model) {
-      var statePanel = A2($Html.div,_U.list([$Html$Attributes.$class("state")]),_U.list([gameStateInfo(model)]));
+   var view = F2(function (address,_p13) {
+      var _p14 = _p13;
+      var _p15 = _p14.game;
+      var statePanel = A2($Html.div,_U.list([$Html$Attributes.$class("state")]),_U.list([gameStateInfo(_p15)]));
       var achievementsPanel = A2($Html.div,
       _U.list([$Html$Attributes.$class("achievements")]),
       _U.list([A2($Html.span,_U.list([]),_U.list([$Html.text("Round")]))
-              ,A2($Html.span,_U.list([$Html$Attributes.$class("round")]),_U.list([$Html.text($Basics.toString(model.achievements.round + 1))]))
+              ,A2($Html.span,_U.list([$Html$Attributes.$class("round")]),_U.list([$Html.text($Basics.toString(_p15.achievements.round + 1))]))
               ,A2($Html.span,_U.list([]),_U.list([$Html.text("Score")]))
-              ,A2($Html.span,_U.list([$Html$Attributes.$class("score")]),_U.list([$Html.text($Basics.toString(model.achievements.score))]))
+              ,A2($Html.span,_U.list([$Html$Attributes.$class("score")]),_U.list([$Html.text($Basics.toString(_p15.achievements.score))]))
               ,A2($Html.span,
               _U.list([$Html$Attributes.$class("buttons")]),
               _U.list([A2($Html.i,_U.list([$Html$Attributes.$class("fa fa-fast-forward"),A2($Html$Events.onClick,address,NextRound)]),_U.list([]))]))]));
-      var inputRow = A2(viewInputRow,address,model);
-      var numberRows = A2(viewBoard,address,model);
+      var inputRow = A2(viewInputRow,address,_p15);
+      var numberRows = A2(viewBoard,address,_p15);
       var exercisePanel = A2($Html.div,
       _U.list([$Html$Attributes.$class("board"),$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "font-size",_1: "1rem"}]))]),
       A2($Basics._op["++"],numberRows,_U.list([A2($Html.div,_U.list([$Html$Attributes.$class("mark")]),_U.list([$Html.text("+")])),inputRow])));
       return A2($Html.div,
-      _U.list([$Html$Attributes.classList(_U.list([{ctor: "_Tuple2",_0: "game",_1: true},{ctor: "_Tuple2",_0: classForState(model.state),_1: true}]))]),
+      _U.list([$Html$Attributes.classList(_U.list([{ctor: "_Tuple2",_0: "game",_1: true},{ctor: "_Tuple2",_0: classForState(_p15.state),_1: true}]))]),
       _U.list([achievementsPanel,statePanel,exercisePanel]));
    });
-   var minLevel = 3;
-   var foundLevel = F2(function (round,level) {
-      foundLevel: while (true) {
-         var limit = $List.sum(A2($List.map,function (n) {    return n * n;},_U.range(1,level - minLevel + 2)));
-         if (_U.cmp(round,limit) < 0) return level; else {
-               var _v8 = round,_v9 = level + 1;
-               round = _v8;
-               level = _v9;
-               continue foundLevel;
-            }
-      }
-   });
-   var levelLength = 5;
-   var createNextModel = function (achievements) {
-      var level = A2($Basics.min,A2(foundLevel,achievements.round,minLevel),maxLevel);
-      var n = A2($Basics.rem,achievements.round,levelLength);
-      var numbers = A2($Matrix.transformN,n,$Matrix.seed(level));
-      return A3(createModel,level,numbers,achievements);
-   };
-   var init = {ctor: "_Tuple2",_0: createNextModel(A2(Achievements,0,0)),_1: $Effects.none};
-   var updateModelWithNewClock = F2(function (model,clock) {
-      var _p13 = A3(updateState,model,$Array.toList(model.input),clock);
-      var newstate = _p13._0;
-      var earned = _p13._1;
-      var achievements = model.achievements;
-      var newachievements = _U.update(achievements,{score: achievements.score + earned});
-      var newmodel = _U.eq(clock,0 - waitPeriod) ? createNextModel(_U.update(achievements,{round: achievements.round + 1})) : _U.update(model,
-      {clock: clock,state: newstate,achievements: newachievements});
-      return {ctor: "_Tuple2",_0: newmodel,_1: $Effects.none};
-   });
-   var update = F2(function (message,model) {
-      var _p14 = message;
-      switch (_p14.ctor)
-      {case "KeyPressed": var _p15 = _p14._0;
-           var digit = _p15 - 48;
-           var character = $Char.fromCode(_p15);
-           return _U.cmp(digit,0) > -1 && _U.cmp(digit,9) < 1 ? A2(updateModelWithNewInput,model,character) : _U.eq(_p15,127) ? A2(updateModelWithNewInput,
-           model,
-           _U.chr("?")) : {ctor: "_Tuple2",_0: model,_1: $Effects.none};
-         case "ArrowRight": return {ctor: "_Tuple2",_0: moveCursorRight(model),_1: $Effects.none};
-         case "ArrowLeft": return {ctor: "_Tuple2",_0: moveCursorLeft(model),_1: $Effects.none};
-         case "Tick": return A2(updateModelWithNewClock,model,model.clock - 1);
-         case "NextRound": var achievements = model.achievements;
-           return {ctor: "_Tuple2",_0: createNextModel(_U.update(achievements,{round: model.achievements.round + 1})),_1: $Effects.none};
-         default: return {ctor: "_Tuple2",_0: model,_1: $Effects.none};}
-   });
    return _elm.AdditionGame.values = {_op: _op
-                                     ,levelLength: levelLength
-                                     ,minLevel: minLevel
-                                     ,maxLevel: maxLevel
-                                     ,timefactor: timefactor
                                      ,waitPeriod: waitPeriod
-                                     ,InProgress: InProgress
-                                     ,Solved: Solved
-                                     ,Failed: Failed
-                                     ,Timeout: Timeout
-                                     ,Achievements: Achievements
-                                     ,Board: Board
                                      ,Model: Model
                                      ,init: init
-                                     ,createNextModel: createNextModel
-                                     ,foundLevel: foundLevel
-                                     ,createModel: createModel
                                      ,Noop: Noop
                                      ,KeyPressed: KeyPressed
                                      ,ArrowLeft: ArrowLeft
@@ -11254,13 +11321,11 @@ Elm.AdditionGame.make = function (_elm) {
                                      ,NextRound: NextRound
                                      ,arrowAsAction: arrowAsAction
                                      ,update: update
-                                     ,updateModelWithNewInput: updateModelWithNewInput
-                                     ,updateModelWithNewClock: updateModelWithNewClock
-                                     ,updateState: updateState
+                                     ,updateGameWithNewInput: updateGameWithNewInput
+                                     ,updateGameWithNewClock: updateGameWithNewClock
                                      ,moveCursorLeft: moveCursorLeft
                                      ,moveCursorRight: moveCursorRight
                                      ,updateInput: updateInput
-                                     ,countErrors: countErrors
                                      ,view: view
                                      ,gameStateInfo: gameStateInfo
                                      ,classForState: classForState
