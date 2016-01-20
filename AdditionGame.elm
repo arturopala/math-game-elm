@@ -94,13 +94,7 @@ update message model =
                 in
                     ( { model
                         | game =
-                            strategy.createNext
-                                { game
-                                    | achievements =
-                                        { achievements
-                                            | round = game.achievements.round + 1
-                                        }
-                                }
+                            strategy.createNextRound game
                       }
                     , Effects.none
                     )
@@ -176,13 +170,7 @@ updateGameWithNewClock game strategy clock =
 
         newgame =
             if (clock == (-waitPeriod)) then
-                strategy.createNext
-                    { game
-                        | achievements =
-                            { achievements
-                                | round = achievements.round + 1
-                            }
-                    }
+                strategy.createNextRound game
             else
                 { game
                     | clock = clock
@@ -404,7 +392,17 @@ viewBoard address game =
                         )
                     )
     in
-        List.map CharRow.view (emptyRows ++ numberRows)
+        List.map (CharRow.view (Signal.forwardTo address charRowAction)) (emptyRows ++ numberRows)
+
+
+charRowAction : CharRow.Action -> Action
+charRowAction a =
+    case a of
+        CharRow.Click character ->
+            if (Char.isDigit character) then
+                KeyPressed ((Matrix.parseCharAsInt character) + 48)
+            else
+                Noop
 
 
 viewInputRow : Signal.Address Action -> Game -> Html

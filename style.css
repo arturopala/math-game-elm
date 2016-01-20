@@ -43,7 +43,7 @@ html {
 
 .game > .achievements .score {
   display: inline-block;
-  color: #ff7200;;
+  color: #ff7200;
   padding: 0 0.5em;
   font-family: 'VAGBold';
   width: 2em;
@@ -53,6 +53,10 @@ html {
   display: inline-block;
   float: right;
   cursor: pointer;
+}
+
+.game > .achievements .buttons:hover {
+  color: #ff7200;
 }
 
 .game > .state {
@@ -203,40 +207,50 @@ html {
 
 .cell.v1 {
   background-color: #FFFFFF;
+  cursor: pointer;
 }
 
 .cell.v2 {
   background-color: #FFF7DF;
+  cursor: pointer;
 }
 
 .cell.v3 {
   background-color: #FFEFBF;
+  cursor: pointer;
 }
 
 .cell.v4 {
   background-color: #FFE79F;
+  cursor: pointer;
 }
 
 .cell.v5 {
   background-color: #FFDF80;
+  cursor: pointer;
 }
 
 .cell.v6 {
   background-color: #FFD760;
+  cursor: pointer;
 }
 
 .cell.v7 {
   background-color: #FFCF40;
+  cursor: pointer;
 }
 
 .cell.v8 {
   background-color: #FFC720;
+  cursor: pointer;
 }
 
 .cell.v9 {
   background-color: #FFBF00;
+  cursor: pointer;
 }
 
 .cell.v0 {
   background-color: lightgray;
+  cursor: pointer;
 }

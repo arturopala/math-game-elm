@@ -13,7 +13,7 @@ timefactor =
 
 
 minLevel =
-    2
+    3
 
 
 maxLevel =
@@ -23,7 +23,7 @@ maxLevel =
 strategy : Strategy
 strategy =
     { initialGame = initialGame
-    , createNext = createNext
+    , createNextRound = createNextRound
     , updateState = updateState
     }
 
@@ -41,27 +41,27 @@ initialGame =
         createGame initialMatrix { achievements | level = ( minLevel, minLevel ) }
 
 
-createNext : Game -> Game
-createNext game =
+createNextRound : Game -> Game
+createNextRound game =
     let
-        n = rem game.achievements.round (maxLevel - minLevel)
+        round = game.achievements.round + 1
 
-        ( w, h, step ) = foundLevel game.achievements.round minLevel
+        ( w, h, step ) = calculateWidthHeightAndStep round minLevel
 
-        width = min (max w game.minLevel) game.maxLevel
+        width = clamp game.minLevel game.maxLevel w
 
-        height = min (max h game.minLevel) game.maxLevel
+        height = clamp game.minLevel game.maxLevel h
 
         numbers =
-            Matrix.transformN n (Matrix.seed2 width height step)
+            Matrix.transformN round (Matrix.seed2 width height step)
 
         achievements = game.achievements
     in
-        createGame numbers { achievements | level = ( width, height ) }
+        createGame numbers { achievements | level = ( width, height ), round = round }
 
 
-foundLevel : Int -> Int -> ( Int, Int, Int )
-foundLevel round level =
+calculateWidthHeightAndStep : Int -> Int -> ( Int, Int, Int )
+calculateWidthHeightAndStep round level =
     let
         limit =
             [1..(level - minLevel + 2)]
@@ -91,7 +91,7 @@ foundLevel round level =
                     ( -1, (min level 2), maxLevel )
 
                 7 ->
-                    ( (min level 2), -1, maxLevel )
+                    ( (min level 3), -1, maxLevel )
 
                 _ ->
                     ( 0, 0, maxLevel )
@@ -99,7 +99,7 @@ foundLevel round level =
         if (round < limit) then
             ( (min (level + dw) maxLevel), (min (level + dh) maxLevel), step )
         else
-            foundLevel round (level + 1)
+            calculateWidthHeightAndStep round (level + 1)
 
 
 createGame : Matrix -> Achievements -> Game
@@ -117,13 +117,13 @@ createGame numbers achievements =
 
         height = List.length numbers
 
-        board = Board numbers solution width height
+        sum = numbers |> List.map (\row -> List.sum (List.map Matrix.parseCharAsInt row)) |> List.sum
+
+        board = Board numbers solution width height sum
 
         input = Array.repeat width ' '
-
-        seconds = numbers |> List.map (\row -> List.sum (List.map (String.fromChar >> String.toInt >> Result.withDefault 0) row)) |> List.sum
     in
-        Game board input (width - 1) InProgress (timefactor * seconds) achievements minLevel maxLevel
+        Game board input (width - 1) InProgress (timefactor * sum) achievements minLevel maxLevel
 
 
 updateState : Game -> Row -> Int -> ( State, Int )
@@ -139,7 +139,7 @@ updateState game input clock =
             let
                 correctInputs = game.board.width - (countErrors game.board.solution input)
 
-                points = (clock + correctInputs + (game.board.width * game.board.height))
+                points = (clock + correctInputs + game.board.sum)
             in
                 if (clock == 0) then
                     ( Timeout, correctInputs )

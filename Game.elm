@@ -36,12 +36,13 @@ type alias Board =
     , solution : Row
     , width : Int
     , height : Int
+    , sum : Int
     }
 
 
 type alias Strategy =
     { initialGame : Game
-    , createNext : Game -> Game
+    , createNextRound : Game -> Game
     , updateState : Game -> Row -> Int -> ( State, Int )
     }
 

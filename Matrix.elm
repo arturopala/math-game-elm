@@ -18,7 +18,7 @@ type alias Matrix =
 
 base : Row
 base =
-    [ '1', '2', '3', '4', '5', '6', '7', '8', '9', '8', '7', '6', '5', '4', '3', '2', '1', '2', '3', '4', '5', '6', '7', '8', '9' ]
+    [ '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '9', '8', '7', '6', '5', '4', '3', '2', '1', '2', '3', '4', '5', '6', '7', '8', '9' ]
 
 
 seed : Int -> Matrix
@@ -210,3 +210,8 @@ pairs m =
         snd = last ++ init
     in
         List.map2 (,) m snd
+
+
+parseCharAsInt : Char -> Int
+parseCharAsInt char =
+    char |> String.fromChar >> String.toInt >> Result.withDefault 0
