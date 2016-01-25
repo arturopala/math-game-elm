@@ -3,7 +3,7 @@
 Math game written in [Elm](http://www.elm-lang.org)
 ===================================================
 
-###[Play it here!](http://arturopala.github.io/math-game-elm/)
+###[Play it here!](http://arturopala.github.io/math-game-elm/) or find it [here](http://builtwithelm.co/)
 
 
 ##Build
