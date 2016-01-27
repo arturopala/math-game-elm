@@ -5,21 +5,23 @@ Math game written in [Elm](http://www.elm-lang.org)
 
 ###[Play it here!](http://arturopala.github.io/math-game-elm/) or find it [here](http://builtwithelm.co/)
 
+##Prerequisites
+
+-   Node.js > 4.0
+-   run `npm install` or `npm install -g elm onchange ws`
 
 ##Build
 
-`npm install -g elm onchange ws`
+-   Run `elm-make` to compile `elm.js`, or
 
-##Development
+-   Run `npm run compile` to start watching sources and recompile on the fly.
 
-Run `elm-make` to compile `elm.js`.
-
-Run `onchange` to recompile on fly.
 ```
 onchange '*.elm' -v -- elm-make Main.elm --output elm.js
 ```
 
-Run `ws` to see game in browser.
+##Run
+-   Run `npm run start` or `ws` to run embeded http server, then see game in the browser <http://127.0.0.1:8000>
 
 ##Deploy
 

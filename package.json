@@ -1,0 +1,30 @@
+{
+  "name": "math-exercise",
+  "version": "1.0.0",
+  "description": "Addition exercise game written in Elm",
+  "main": "elm.js",
+  "scripts": {
+    "compile": "onchange '*.elm' -v -- elm-make Main.elm --output elm.js",
+    "start": "ws"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/arturopala/math-game-elm.git"
+  },
+  "keywords": [
+    "math",
+    "game",
+    "elm"
+  ],
+  "author": "Artur Opala",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/arturopala/math-game-elm/issues"
+  },
+  "homepage": "https://github.com/arturopala/math-game-elm#readme",
+  "devDependencies": {
+    "elm": "^0.16.0",
+    "onchange": "^2.0.0",
+    "ws": "^1.0.1"
+  }
+}
