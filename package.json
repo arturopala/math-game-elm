@@ -4,8 +4,9 @@
   "description": "Addition exercise game written in Elm",
   "main": "elm.js",
   "scripts": {
-    "compile": "onchange '*.elm' -v -- elm-make Main.elm --output elm.js",
-    "start": "ws"
+    "compile": "onchange '**/*.elm' -v -- elm-make src/Main.elm --output assets/elm.js",
+    "start": "ws",
+    "test": "elm-test test/TestRunner.elm"
   },
   "repository": {
     "type": "git",
@@ -24,6 +25,7 @@
   "homepage": "https://github.com/arturopala/math-game-elm#readme",
   "devDependencies": {
     "elm": "^0.16.0",
+    "elm-test": "^0.16.0",
     "onchange": "^2.0.0",
     "ws": "^1.0.1"
   }

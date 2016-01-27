@@ -20,6 +20,10 @@ Math game written in [Elm](http://www.elm-lang.org)
 onchange '*.elm' -v -- elm-make Main.elm --output elm.js
 ```
 
+##Test
+
+-   Run `npm test`
+
 ##Run
 -   Run `npm run start` or `ws` to run embeded http server, then see game in the browser <http://127.0.0.1:8000>
 
