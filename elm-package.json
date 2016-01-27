@@ -1,7 +1,7 @@
 {
     "version": "1.0.0",
-    "summary": "helpful summary of your project, less than 80 characters",
-    "repository": "https://github.com/user/project.git",
+    "summary": "Addition exercise game written in Elm",
+    "repository": "https://github.com/arturopala/math-game-elm",
     "license": "BSD3",
     "source-directories": [
         "."
