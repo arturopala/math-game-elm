@@ -17,7 +17,7 @@ Math game written in [Elm](http://www.elm-lang.org)
 -   Run `npm run compile` to start watching sources and recompile on the fly.
 
 ```
-onchange '*.elm' -v -- elm-make Main.elm --output elm.js
+onchange '**/*.elm' -v -- elm-make src/Main.elm --output assets/elm.js
 ```
 
 ##Test
@@ -25,7 +25,7 @@ onchange '*.elm' -v -- elm-make Main.elm --output elm.js
 -   Run `npm test`
 
 ##Run
--   Run `npm run start` or `ws` to run embeded http server, then see game in the browser <http://127.0.0.1:8000>
+-   Run `npm run start` or `ws` to run embeded http server, then try game in the browser <http://127.0.0.1:8000>
 
 ##Deploy
 
